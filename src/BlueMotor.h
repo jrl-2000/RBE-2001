@@ -1,7 +1,4 @@
-#pragma once
-
 #include "PID.h"
-
 
 class BlueMotor{
     public:

@@ -7,7 +7,7 @@
 
 Rangefinder rangeFinder;
 BlueMotor arm;
-Chassis chassis;
+Chassis baseBot;
 Romi32U4ButtonA pb;
 void setup() {
   rangeFinder.setup();

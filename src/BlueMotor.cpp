@@ -55,7 +55,8 @@ void BlueMotor::setEffort(int effort){
     setEffort(abs(effort), effort < 0);
 }
 void BlueMotor::setEffortNoDB(int effort){
-    int newEffort = (abs(effort)>105)? abs(effort):105;
+    int deadband = 105;
+    int newEffort = (abs(effort)>deadband)? abs((effort/400.0)*(400-deadband)+deadband):deadband;
     Serial.print("\t");
     Serial.print((effort/abs(effort))*newEffort);
     setEffort(newEffort, effort<0);

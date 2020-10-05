@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "..\\..\\Motor test"
+		},
+		{
+			"name": "class",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"C_Cpp.errorSquiggles": "Enabled"
+	}
+}
