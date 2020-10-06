@@ -19,31 +19,5 @@ int currentEffort = 0;
 unsigned long startTime = millis();
 bool active = false;
 void loop() {
-  rangeFinder.loop();
-  int targetAngle = 0;
-  if(pb.isPressed()){
-    if ((millis()-startTime)%6000<3000) {
-      if (targetAngle!=45) {
-        targetAngle = 45;
-      }     
-    }
-    else {
-      if (targetAngle!=135) {
-        targetAngle = 135;
-      } 
-    }
-    Serial.println("\n\nAngle:\tTarget:\tPID:\tNo DB:\t kP:\tkI:\tkD:");
-    Serial.print(arm.getPositionDegrees());
-    Serial.print("\t");
-    Serial.print(targetAngle);
 
-    arm.turnToPosition(targetAngle);
-    delay(10);
-  }
-  else {
-    arm.setEffort(0);
-    arm.reset();
-    arm.resetPID();
-    startTime = millis();
-  }
 }
