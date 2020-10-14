@@ -15,6 +15,7 @@ BlueMotor arm;
 Chassis chassis;
 IRDecoder decoder;
 Servo32U4 servo;
+Romi32U4ButtonA pb;
 
 //Team 12
 //RBE 2001 A20 Final Project
@@ -255,8 +256,30 @@ void doStateMachine()
 
 }
 
+bool buttonPressed;
 void loop(){
   // put your main code here, to run repeatedly:
+  // put your main code here, to run repeatedly:
   rangeFinder.loop();
-  doStateMachine();
+  //doStateMachine();
+  Serial.println("\n\nX:\tY:\tAngle:\n");
+  Serial.print(chassis.getX());
+  Serial.print("\t");
+  Serial.print(chassis.getY());
+  Serial.print("\t");
+  Serial.print(chassis.getAngleDegrees());
+
+  if (pb.isPressed()) {
+    buttonPressed = true;
+  }
+  if (buttonPressed) {
+   // doStateMachine();
+   if (chassis.moveToPoint(-10,-10)) {
+      //state = TURN_TO_PLATFORM_45;
+      chassis.stopAllMotors();
+      buttonPressed = false;
+    }
+  }
+  chassis.updatePosition();
+  delay(5);
 }
