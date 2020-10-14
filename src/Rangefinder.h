@@ -2,6 +2,9 @@
 
 #include <Romi32u4.h>
 
+//45 degree side 12 cm
+//25 degree side 8cm
+//staging platform 6cm
 
 
 class Rangefinder {
