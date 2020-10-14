@@ -4,7 +4,7 @@
 
 //45 degree side 12 cm
 //25 degree side 8cm
-//staging platform 6cm
+//staging platform 6 cm
 
 
 class Rangefinder {

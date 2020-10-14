@@ -1,4 +1,7 @@
+#pragma once
 #include "PID.h"
+
+
 
 class BlueMotor{
     public:
@@ -13,7 +16,7 @@ class BlueMotor{
         void reset();
         void setup();
 
-        PID pid;
+        PID armpid;
     private:
         void setEffort(int effort, bool clockwise);
         const int tolerance = 3;
