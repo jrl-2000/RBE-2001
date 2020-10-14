@@ -9,8 +9,13 @@
 
 class Rangefinder {
 public:
- void setup();
- void loop();
- static void UltrasonicISR();
- float getDistanceCM();
+    void setup();
+    void loop();
+    static void UltrasonicISR();
+    void resetPingSummation();
+    float getAccurateDistance();
+    float getDistanceCM();
+private:
+    float averagePingSummation = 0;
+    float pingIterations = 0;
 }; 

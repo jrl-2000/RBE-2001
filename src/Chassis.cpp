@@ -2,9 +2,11 @@
 #include <Chassis.h>
 
 void Chassis::initialize() {
-  drivePowerPID.pidInit(70,0,0);
-  turnPowerPID.pidInit(140,0,0);
-  turnPID.pidInit(1.8,0,0);
+  drivePowerPID.pidInit(65,0,0);
+  turnPowerPID.pidInit(120,0,0);
+  turnPID.pidInit2(8,0.016,420, 3);
+
+  reversed = true;
 }
 
 void Chassis::turnAngle(float degrees)
@@ -85,8 +87,8 @@ void Chassis::updatePosition() {
   deltaY = radius*sin(theta);
 
   angle = thetaNew;
-  x = x + deltaX; //step 11
-  y = y + deltaY;
+  x = x + ((reversed)? -1: 1)*deltaX; //step 11
+  y = y + ((reversed)? -1: 1)*deltaY;
 }
 
 float Chassis::getX() {
@@ -96,7 +98,12 @@ float Chassis::getX() {
 float Chassis::getY() {
   return y;
 }
-
+void Chassis::setX(float newX) {
+  x = newX;
+}
+void Chassis::setY(float newY) {
+  y = newY;
+}
 float Chassis::getAngleDegrees() {
   return getAngle()*180/M_PI;
 }
@@ -115,6 +122,9 @@ float Chassis::modulus(float a, float b) {
 }
 bool Chassis::turnToAngle(float targetAngle) {
   bool atPoint = false;
+  if (repsAtTarget == -1) {
+    startTime = millis();
+  }
 
   float referenceAngle = 0;
   if (targetAngle-getAngleDegrees()>180) {
@@ -127,11 +137,21 @@ bool Chassis::turnToAngle(float targetAngle) {
     referenceAngle = getAngleDegrees();
   }
   float turnPower = turnPID.pidCalculate(targetAngle, referenceAngle);
+  if (fabs(turnPower)>160) {
+    turnPower = ((turnPower>0)? 1: -1) * 160;
+  }
   
   motors.setEfforts(turnPower,-turnPower);
 
-  if (abs(getAngleDegrees()-targetAngle)<1.5) {
+  if (abs(getAngleDegrees()-targetAngle)<0.5) {
+    repsAtTarget++;
+  }
+  else {
+    repsAtTarget = 0;
+  }
+  if (repsAtTarget > 10 || millis()-startTime>2000) {
     atPoint = true;
+    repsAtTarget = -1;
   }
   return atPoint;
 }
@@ -146,6 +166,8 @@ bool Chassis::moveToPoint(float targetX, float targetY) {
   }
   power = -drivePowerPID.pidCalculate(0, sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)));
   power = slewRateCalculate(power);
+  power = ((power<0)? -1: 1)*(abs(power)>200)? 200: abs(power);
+  power = ((reversed)? -1: 1)*power;
   //Serial.println(power);
  // if (targetY-getY())
   targetAngle = -1*(atan2f((targetY-getY()),(targetX-getX()))-M_PI/2);
@@ -179,10 +201,17 @@ bool Chassis::moveToPoint(float targetX, float targetY) {
   // Serial.print(turnPower);
 
  // power = 0;
-  motors.setEfforts((power + turnPower)*0.35, (power - turnPower)*0.35);
+  motors.setEfforts((power + turnPower)*0.7, (power - turnPower)*0.7);
 
-  if (sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)) < 0.5) {
+  if (sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)) < 1) {
+    repsAtTarget++;
+  }
+  else {
+    repsAtTarget = 0;
+  }
+  if (repsAtTarget > 5) {
     atPoint = true;
+    repsAtTarget = -1;
   }
   return atPoint;
 }

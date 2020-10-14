@@ -5,9 +5,10 @@
 class PID
 {
 public:
-
     void pidInit(float fKP, float fKI, float fKD);
-    void reset();
+    void pidInit2(float fKP, float fKI, float fKD, float fEpsilonOuter);
+
+    void reset(float currentValue);
     float pidCalculate(float target, float currentValue);
     float getKP();
     float getKI();
@@ -16,6 +17,7 @@ public:
     float kP;
     float kI;
     float kD;
+    float epsilonOuter;
 
     unsigned long lastTime;
     float lastValue;

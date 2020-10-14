@@ -34,7 +34,7 @@ void BlueMotor::setup(){
     pid.pidInit(5,0,0);
 }
 void BlueMotor::resetPID() {
-    pid.reset();
+    pid.reset(0);
 }
 void BlueMotor::turnToPosition(int target) {
     int effort = pid.pidCalculate(target, getPositionDegrees());
