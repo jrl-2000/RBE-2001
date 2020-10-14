@@ -83,6 +83,10 @@ void setup() {
   rangeFinder.setup();
   decoder.init();
   arm.reset();
+  servo.Init();
+  servo.Attach();
+  servo.SetMinMaxUS(900, 2100); // replace with our own us values
+  pinMode(18, INPUT);
   state = CLOSE_JAW_START;
 }
 
