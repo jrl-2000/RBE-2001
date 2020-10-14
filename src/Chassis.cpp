@@ -209,7 +209,7 @@ bool Chassis::moveToPoint(float targetX, float targetY) {
   else {
     repsAtTarget = 0;
   }
-  if (repsAtTarget > 5) {
+  if (repsAtTarget > 2) {
     atPoint = true;
     repsAtTarget = -1;
   }

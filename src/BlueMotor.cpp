@@ -41,9 +41,7 @@ void BlueMotor::resetPID() {
 }
 void BlueMotor::turnToPosition(int target) {
     float effort = armpid.pidCalculate(target, getPositionDegrees());
-    setEffortNoDB(effort);
-    
-    
+    setEffortNoDB(effort);    
 }
 void BlueMotor::setEffort(int effort){
     if(abs(effort) > 400){
