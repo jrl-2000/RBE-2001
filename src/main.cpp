@@ -15,13 +15,13 @@ BlueMotor arm;
 Chassis chassis;
 IRDecoder decoder;
 Servo32U4 servo;
-Romi32U4ButtonA pb;
+Romi32U4ButtonC pb;
 QTRSensors qtr;
 
 //arm targets
 float target25pickup = 420 - 145; 
-float target45droppoff = 778 - 145;
-float target45pickup = 865 - 145;
+float target45dropoff = 778 - 145;
+float target45pickup = 920 - 145;
 float target25dropoff = 169 -145;
 float targetStagingPlatform = 1969 - 145;
 
@@ -30,6 +30,7 @@ float targetStagingPlatform = 1969 - 145;
 //Brian Boxell, Jonathan Lopez, Nick Grumski
 
 bool paused = false;
+float armTarget = 0;
 
 //State machine states
 enum States
@@ -76,7 +77,9 @@ enum States
   LIFT_PLATE_25,
   BACK_UP_25,
   TURN_TO_PLATFORM_25,
+  CORRECTION_5,
   GO_TO_PLATFORM_25,
+  STRAIGHTEN_4,
   LOWER_ARM_25,
   FEEDBACK_6,
   OPEN_JAW_25_PLATFORM,
@@ -85,6 +88,7 @@ enum States
   RAISE_ARM_25_PLATFORM,
   MOVE_AWAY_FROM_PLATFORM_25,
   TURN_TO_25_ROOF_2,
+  CORRECTION_6,
   DRIVE_TO_ROOF_AND_RAISE_PLATE_25,
   DROP_PLATE_25,
   FEEDBACK_8,
@@ -125,9 +129,10 @@ void doStateMachine()
   switch (state)
   {
   case DRIVE_TO_REMOVE_45:
-    if (chassis.moveToPoint(0,8)){
+    armTarget = target45pickup;
+    if (chassis.moveToPoint(0,9)){
       chassis.stopAllMotors();
-      state = STRAIGHTEN_1;
+      state = CLOSE_JAW_START;
     }
     break;
   case STRAIGHTEN_1:
@@ -141,17 +146,17 @@ void doStateMachine()
     state =  LIFT_PLATE_45;
     break;
   case LIFT_PLATE_45:
-
+    armTarget = target45pickup-200;
     state = BACK_UP_45;
     break;
   case BACK_UP_45:
-    if (chassis.moveToPoint(0,-0.5)){
+    if (chassis.moveToPoint(0,-1)){
       chassis.stopAllMotors();
       state = TURN_TO_PLATFORM_45;
     }
     break;
   case TURN_TO_PLATFORM_45:
-    if (chassis.turnToAngle(90)) {
+    if (chassis.turnToAngle(92)) {
       chassis.stopAllMotors();
       state = CORRECTION_1;
     }
@@ -163,13 +168,14 @@ void doStateMachine()
     state = GO_TO_PLATFORM_45;
     break;
   case GO_TO_PLATFORM_45:
-    if (chassis.moveToPoint(10,-1)){
+    armTarget = targetStagingPlatform;
+    if (chassis.moveToPoint(9.25,-1.5)){
       chassis.stopAllMotors();
       state = STRAIGHTEN_2;
     }
     break;
   case STRAIGHTEN_2:
-    if (chassis.turnToAngle(90)){
+    if (chassis.turnToAngle(91)){
       chassis.stopAllMotors();
       state = LOWER_ARM_45;
     }
@@ -187,11 +193,11 @@ void doStateMachine()
     state = RAISE_ARM_45_PLATFORM;
     break;
   case RAISE_ARM_45_PLATFORM:
-
+    armTarget = target45dropoff;
     state = MOVE_AWAY_FROM_PLATFORM_45;
     break;
   case MOVE_AWAY_FROM_PLATFORM_45:
-    if (chassis.moveToPoint(0,0)){
+    if (chassis.moveToPoint(-0.5,0)){
       chassis.stopAllMotors();     
       state = TURN_TO_45_ROOF;
     }
@@ -204,12 +210,12 @@ void doStateMachine()
     break;
   case CORRECTION_2:
     distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 11.75;
+    distanceError = distance - 12.25;
     chassis.setY(chassis.getY()-distanceError);
     state = DRIVE_TO_ROOF_AND_RAISE_PLATE_45;
     break;
   case DRIVE_TO_ROOF_AND_RAISE_PLATE_45:
-    if (chassis.moveToPoint(0,7)){
+    if (chassis.moveToPoint(0,9)){
       chassis.stopAllMotors();    
       state = STRAIGHTEN_3;
     }
@@ -242,7 +248,7 @@ void doStateMachine()
     }
     break;
   case  DRIVE_TO_CLEAR_ROOF_M:
-    if (chassis.moveToPoint(9,32)){
+    if (chassis.moveToPoint(9,33)){
       chassis.stopAllMotors();           
       state = TURN_RIGHT_M2;
     }
@@ -257,7 +263,7 @@ void doStateMachine()
     break;
   case CORRECTION_3:
     distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 2;
+    distanceError = distance - 2.75;
     chassis.setX(chassis.getX()-distanceError);
     state = TURN_LEFT_M2;
     break;
@@ -270,25 +276,26 @@ void doStateMachine()
 
     break;
   case DRIVE_TO_ROOF_LINE_M:
-    if (chassis.moveToPoint(0,32)){
+    if (chassis.moveToPoint(0,33)){
       chassis.stopAllMotors();           
       state = TURN_TO_25_ROOF_1;
     }
     break;
   case TURN_TO_25_ROOF_1:
-    if (chassis.turnToAngle(175)) {
+    armTarget = target25pickup;
+    if (chassis.turnToAngle(172)) {
       chassis.stopAllMotors();
       state = CORRECTION_4;
     }
     break;
   case CORRECTION_4:
     distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 11.5;
+    distanceError = distance - 11;
     chassis.setY(chassis.getY()-distanceError);
     state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
     break;
   case DRIVE_TO_25_ROOF_AND_RAISE_ARM:
-    if (chassis.moveToPoint(0,25)){
+    if (chassis.moveToPoint(1,23)){
       chassis.stopAllMotors();           
       state = CLOSE_JAW_25_START;
     }
@@ -302,18 +309,35 @@ void doStateMachine()
     state = BACK_UP_25;
     break;
   case BACK_UP_25:
-    if (chassis.moveToPoint(0,32)){
+    if (chassis.moveToPoint(2,33)){
       chassis.stopAllMotors();           
       state = TURN_TO_PLATFORM_25;
     }
     break;
   case TURN_TO_PLATFORM_25:
-
-    state =  GO_TO_PLATFORM_25;
+    if (chassis.turnToAngle(82)){
+      chassis.stopAllMotors();           
+      state =  GO_TO_PLATFORM_25;
+    }
+    break;
+  case CORRECTION_5:
+    distance = rangeFinder.getDistanceCM()/2.54;
+    distanceError = distance - 10.75;
+    chassis.setX(chassis.getX()-distanceError);
+    state = GO_TO_PLATFORM_25;
     break;
   case GO_TO_PLATFORM_25:
-
-    state = LOWER_ARM_25;
+    //armTarget = targetStagingPlatform;
+    if (chassis.moveToPoint(9.8,34)){
+      chassis.stopAllMotors();
+      state = STRAIGHTEN_4;
+    }
+    break;
+  case STRAIGHTEN_4:
+    if (chassis.turnToAngle(86)){
+      chassis.stopAllMotors();
+      state = LOWER_ARM_25;
+    }
     break;
   case LOWER_ARM_25:
 
@@ -332,16 +356,28 @@ void doStateMachine()
     state = MOVE_AWAY_FROM_PLATFORM_25;
     break;
   case MOVE_AWAY_FROM_PLATFORM_25:
-
-    state = TURN_TO_25_ROOF_2;
+    if (chassis.moveToPoint(1,32)){
+      chassis.stopAllMotors();           
+      state = TURN_TO_25_ROOF_2;
+    }
     break;
   case TURN_TO_25_ROOF_2:
-
+    if (chassis.turnToAngle(174)){
+      chassis.stopAllMotors();
+      state = CORRECTION_6;
+    }
+    break;
+  case CORRECTION_6:
+    distance = rangeFinder.getDistanceCM()/2.54;
+    distanceError = distance - 12;
+    chassis.setY(chassis.getY()-distanceError);
     state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
     break;
   case DRIVE_TO_ROOF_AND_RAISE_PLATE_25:
-
-    state = DROP_PLATE_25;
+    if (chassis.moveToPoint(2,23)){
+      chassis.stopAllMotors();           
+      state = DROP_PLATE_25;
+    }
     break;
   case DROP_PLATE_25:
 
@@ -352,8 +388,10 @@ void doStateMachine()
     state = BACK_UP_FINAL;
     break;
   case BACK_UP_FINAL:
-
-    state = STOPPED;
+    if (chassis.moveToPoint(1,33)){
+      chassis.stopAllMotors();           
+      state = STOPPED;
+    }
     break;
   case STOPPED:
     
@@ -383,6 +421,7 @@ void loop(){
     delay(800);
   }
   if (buttonPressed) {
+    arm.turnToPosition(armTarget);
     doStateMachine();
     // if (chassis.turnToAngle(90)) {
     // //if (chassis.moveToPoint(10,21.5)) {
