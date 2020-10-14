@@ -54,3 +54,4 @@ uint16_t Servo32U4::SetMinMaxUS(uint16_t min, uint16_t max)
 
     return usMax - usMin; //return the range, in case the user wants to do a sanity check
 }
+
