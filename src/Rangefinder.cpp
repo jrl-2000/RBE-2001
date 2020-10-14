@@ -32,7 +32,7 @@ void Rangefinder::loop()
   digitalWrite(triggerPin, LOW);
   this->UltrasonicISR();
   this->getDistanceCM();
-  delay(50);
+  delay(20);
 
 } 
 
@@ -45,6 +45,9 @@ float Rangefinder::getDistanceCM()
   return distance;
 }
 
+float Rangefinder::getAccurateDistance() {
+  
+}
 
 
 

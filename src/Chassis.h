@@ -15,6 +15,9 @@ public:
 
     float getX();
     float getY();
+    void  setX(float newX);
+    void  setY(float newY);
+
     float getAngleDegrees();
     float getAngle();
     void updatePosition();
@@ -26,6 +29,7 @@ public:
     float slewRateCalculate (float desiredRate);
     bool turnToAngle(float targetAngle);
 
+    bool reversed;
 
     PID drivePowerPID;
     PID turnPowerPID;
@@ -37,7 +41,7 @@ public:
 
     unsigned long lastSlewTime = millis();
     float lastSlewRate = 0;
-    float maxAccel = 2.2;
+    float maxAccel = 2.3;
     
     float Sl = wheelTrack/2; //distance from tracking center to middle of left wheel
     float Sr = wheelTrack/2; //distance from tracking center to middle of right wheel
@@ -73,9 +77,14 @@ public:
     float theta = 0;
     float radius = 0;
 
+    unsigned long startTime = 0;
+
 
 private:
     
+    int repsAtTarget = -1;
+    
+
     float modulus(float a, float b);
     
     Romi32U4Motors motors;

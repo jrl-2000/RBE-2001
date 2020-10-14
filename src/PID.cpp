@@ -1,19 +1,24 @@
 #include "PID.h"
 
 void PID::pidInit(float fKP, float fKI, float fKD) {
-    reset();
+    pidInit2(fKP, fKI, fKD, 999999);
+}
+
+void PID::pidInit2(float fKP, float fKI, float fKD, float fEpsilonOuter) {
+    reset(0);
 
     kP = fKP;
     kI = fKI;
     kD = fKD;
+
+    epsilonOuter = fEpsilonOuter;
 }
 
 float PID::pidCalculate(float target, float currentValue) {
     if (target!=lastTarget) {
-        reset();
+        reset(currentValue);
         lastTarget = target;
     }
-
     unsigned long deltaTime = millis()-lastTime;
     lastTime = millis();
 
@@ -24,18 +29,20 @@ float PID::pidCalculate(float target, float currentValue) {
     
     float error = target-currentValue;
 
-    sigma += error*deltaTime;
+    if (abs(error)<epsilonOuter) {
+        sigma += error*deltaTime;
+    }
 
 
-    float output = error*kP + sigma*kI + slope*kD;
+    float output = error*kP + sigma*kI - slope*kD;
+
     return output;
 }
 
-void PID::reset() {
-    lastValue = 0;
+void PID::reset(float currentValue) {
+    lastValue = currentValue;
     lastTime = millis();
     sigma = 0;
-    lastTarget = 0;
     delay(5);
 }
 
