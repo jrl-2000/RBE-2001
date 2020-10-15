@@ -4,6 +4,11 @@
 
 #include <stdint.h>
 
+//between 35 and 45 for no line on faraday floor
+//pushed down with no line fields slighty higher numbers in the 40's and lower 50's
+//around 550 and 700 on black line
+//around 500-250 being pushed down on black line
+
 /// \brief Emitter behavior when taking readings.
 ///
 /// Note that emitter control will only work if you specify a valid emitter pin

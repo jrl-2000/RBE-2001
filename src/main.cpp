@@ -116,7 +116,7 @@ void setup() {
   arm.reset();
   servo.Init();
   servo.Attach();
-  servo.SetMinMaxUS(900, 2100); // replace with our own us values
+  servo.SetMinMaxUS(1000, 1800); 
   pinMode(18, INPUT);
   state = DRIVE_TO_REMOVE_45;
   chassis.initialize();
@@ -406,14 +406,31 @@ void loop(){
 
   
   //arm.turnToPosition(target45pickup);
-  //arm.getPositionDegrees();
+  arm.getPositionDegrees();
   int value = analogRead(18);
-  Serial.println(value);
-  servo.Write(1300);
+  //Serial.println(value);
+  servo.Write(1900);
 
   
   delay(1000);
 }
+
+//servo code
+// void loop()
+// {
+// //  for (int us = 1500; us < 2000; us += 50)
+// //  {
+//  servo.Write(1300);
+// //  if (us % 100 == 0)
+// //  {
+//  int value = analogRead(18);
+//  Serial.print(2000);
+//  Serial.print(" ");
+//  Serial.println(value);
+//  //}
+//  delay(4000);
+//  //}
+// }
 
 
 // bool buttonPressed = false;
@@ -448,5 +465,38 @@ void loop(){
 //   delay(5);
 // }
 
+//line follower code
+//tests the values
+
+// QTRSensors qtr;
+
+// const uint8_t SensorCount = 2;
+// uint16_t sensorValues[SensorCount];
+
+// void setup()
+// {
+//   // configure the sensors
+//   qtr.setTypeAnalog();
+//   qtr.setSensorPins((const uint8_t[]){A2, A3}, SensorCount);
 
 
+//   Serial.begin(9600);
+// }
+
+
+// void loop()
+// {
+//   // read raw sensor values
+//   qtr.read(sensorValues);
+
+//   // print the sensor values as numbers from 0 to 1023, where 0 means maximum
+//   // reflectance and 1023 means minimum reflectance
+//   for (uint8_t i = 0; i < SensorCount; i++)
+//   {
+//     Serial.print(sensorValues[i]);
+//     Serial.print('\t');
+//   }
+//   Serial.println();
+
+//   delay(250);
+// }
