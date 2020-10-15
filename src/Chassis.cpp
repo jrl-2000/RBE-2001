@@ -201,7 +201,7 @@ bool Chassis::moveToPoint(float targetX, float targetY) {
   // Serial.print(turnPower);
 
  // power = 0;
-  motors.setEfforts((power + turnPower)*0.7, (power - turnPower)*0.7);
+  motors.setEfforts((power + turnPower)*0.55, (power - turnPower)*0.55);
 
   if (sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)) < 1) {
     repsAtTarget++;

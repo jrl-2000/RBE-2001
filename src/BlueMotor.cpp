@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include "PID.h"
 
-
 long count = 0;
 int errorCount = 0;
 int oldValue = 0;
@@ -34,14 +33,22 @@ void BlueMotor::setup(){
     attachInterrupt(digitalPinToInterrupt(ENCB), isr, CHANGE);
     reset();
     oldValue = 0;
-    armpid.pidInit(1.2,0,0);
+    armPID.pidInit(20,0,420);
 }
 void BlueMotor::resetPID() {
-    armpid.reset(0.0);
+    armPID.reset(0.0);
 }
-void BlueMotor::turnToPosition(int target) {
-    float effort = armpid.pidCalculate(target, getPositionDegrees());
-    setEffortNoDB(effort);    
+void BlueMotor::turnToPosition(float targetDegrees) {
+    float effort = armPID.pidCalculate(targetDegrees, getPositionDegrees());
+    // Serial.print("\t");
+    // Serial.print(effort);
+    setEffortNoDB(effort);
+    // Serial.print("\t");
+    // Serial.print(pid.getKP());
+    // Serial.print("\t");
+    // Serial.print(pid.getKI());
+    // Serial.print("\t");
+    // Serial.print(pid.getKD());
 }
 void BlueMotor::setEffort(int effort){
     if(abs(effort) > 400){
@@ -50,9 +57,11 @@ void BlueMotor::setEffort(int effort){
     setEffort(abs(effort), effort < 0);
 }
 void BlueMotor::setEffortNoDB(int effort){
-    int deadband = 105;
-    int newEffort = (abs(effort)>deadband)? abs((effort/400.0)*(400-deadband)+deadband):deadband;
-    setEffort(newEffort, effort<0);
+    int deadband = 120;
+    int newEffort = (abs(effort)/400.0)*(400-deadband)+deadband;
+    // Serial.print("\t");
+    // Serial.print(((effort>=0)? ((effort==0)? 0: 1):-1)*newEffort);
+    setEffort(((effort==0)? 0: 1)*newEffort, effort<0);
 }
 void BlueMotor::setEffort(int effort, bool clockwise){
     OCR1C = effort;
@@ -68,9 +77,7 @@ void BlueMotor::reset(){
     errorCount = 0;
 }
 long BlueMotor::getPositionDegrees() {
-    Serial.println(getPosition()*360/540);
     return getPosition()*360/540;
-    
 }
 long BlueMotor::getPosition(){
     return count;

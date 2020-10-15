@@ -19,11 +19,11 @@ Romi32U4ButtonC pb;
 QTRSensors qtr;
 
 //arm targets
-float target25pickup = 420 - 195; 
-float target45dropoff = 778 - 195;
-float target45pickup = 920 - 225;
-float target25dropoff = 169 -195;
-float targetStagingPlatform = 1969 - 195;
+float target25pickup = 300; 
+float target45dropoff = 569;
+float target45pickup = 960;
+float target25dropoff = 130;
+float targetStagingPlatform = 1900;
 
 //Team 12
 //RBE 2001 A20 Final Project
@@ -35,6 +35,7 @@ float armTarget = 0;
 //State machine states
 enum States
 {
+  MOVE_LIFT_FIRST_POSITION,
   CORRECTION_0,
   DRIVE_TO_REMOVE_45,
   STRAIGHTEN_1,
@@ -118,19 +119,30 @@ void setup() {
   servo.Attach();
   servo.SetMinMaxUS(1000, 1800); 
   pinMode(18, INPUT);
-  state = DRIVE_TO_REMOVE_45;
+  state = MOVE_LIFT_FIRST_POSITION;
   chassis.initialize();
   chassis.setY(0);
 }
 float distance = 0;
 float distanceError = 0;
+int waitIterations = 0;
 void doStateMachine()
 {
   switch (state)
   {
-  case DRIVE_TO_REMOVE_45:
+  case MOVE_LIFT_FIRST_POSITION:
     armTarget = target45pickup;
-    if (chassis.moveToPoint(0,9)){
+    if (waitIterations > 20) {
+      state = DRIVE_TO_REMOVE_45;
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
+    break;
+  case DRIVE_TO_REMOVE_45:
+    servo.Write(1300);
+    if (chassis.moveToPoint(0,9.25)){
       chassis.stopAllMotors();
       state = CLOSE_JAW_START;
     }
@@ -142,7 +154,7 @@ void doStateMachine()
     }
     break;
   case CLOSE_JAW_START:
-    
+    servo.Write(1900);
     state =  LIFT_PLATE_45;
     break;
   case LIFT_PLATE_45:
@@ -156,41 +168,70 @@ void doStateMachine()
     }
     break;
   case TURN_TO_PLATFORM_45:
-    if (chassis.turnToAngle(92)) {
+    if (chassis.turnToAngle(94)) {
       chassis.stopAllMotors();
       state = CORRECTION_1;
     }
     break;
   case CORRECTION_1:
-    distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 11;
-    chassis.setX(chassis.getX()-distanceError);
-    state = GO_TO_PLATFORM_45;
+    if (waitIterations % 4 == 2) {
+      distance = rangeFinder.getAccurateDistance()/2.54;
+      if (distance>0) {
+        distanceError = distance - 10.5;
+        chassis.setX(chassis.getX()-distanceError);
+        state = GO_TO_PLATFORM_45;
+        waitIterations = 0;
+      }
+      else {
+        waitIterations ++;
+      }
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case GO_TO_PLATFORM_45:
-    armTarget = targetStagingPlatform;
-    if (chassis.moveToPoint(9.25,-1.5)){
+    //armTarget = targetStagingPlatform;
+    if (chassis.moveToPoint(9.5,-2.2)){
       chassis.stopAllMotors();
       state = STRAIGHTEN_2;
     }
     break;
   case STRAIGHTEN_2:
-    if (chassis.turnToAngle(91)){
+    if (chassis.turnToAngle(95)){
       chassis.stopAllMotors();
       state = LOWER_ARM_45;
     }
     break;
   case LOWER_ARM_45:
-
-    state = OPEN_JAW_45_PLATFORM;
+    armTarget = targetStagingPlatform;
+    if (waitIterations > 250) {
+      state = OPEN_JAW_45_PLATFORM;
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case OPEN_JAW_45_PLATFORM:
-
-    state = CLOSE_JAW_45_PLATFORM;
+    if (waitIterations > 150) {
+      state = CLOSE_JAW_45_PLATFORM;
+      waitIterations = 0;
+    }
+    else {
+      servo.Write(1300);
+      waitIterations ++;
+    }
     break;
   case CLOSE_JAW_45_PLATFORM:
-
-    state = RAISE_ARM_45_PLATFORM;
+    servo.Write(1900);
+     if (waitIterations > 100) {
+      state = RAISE_ARM_45_PLATFORM;  
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case RAISE_ARM_45_PLATFORM:
     armTarget = target45dropoff;
@@ -209,15 +250,26 @@ void doStateMachine()
     }
     break;
   case CORRECTION_2:
-    distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 12.25;
-    chassis.setY(chassis.getY()-distanceError);
-    state = DRIVE_TO_ROOF_AND_RAISE_PLATE_45;
+    if (waitIterations % 4 == 3) {
+      distance = rangeFinder.getAccurateDistance()/2.54;
+      if (distance>0) {
+        distanceError = distance - 11;
+        chassis.setY(chassis.getY()-distanceError);
+        state = DRIVE_TO_ROOF_AND_RAISE_PLATE_45;
+        waitIterations = 0;
+      }
+      else {
+        waitIterations ++;
+      }
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case DRIVE_TO_ROOF_AND_RAISE_PLATE_45:
-    if (chassis.moveToPoint(0,9)){
+    if (chassis.moveToPoint(0,8.75)){
       chassis.stopAllMotors();    
-      state = STRAIGHTEN_3;
+      state = DROP_PLATE_45;
     }
     break;
   case STRAIGHTEN_3:
@@ -227,15 +279,21 @@ void doStateMachine()
     }
     break;
   case DROP_PLATE_45:
-
-    state = OPEN_JAW_45_END;
+    armTarget = target45dropoff+50;
+    if (waitIterations > 100) {
+      state = OPEN_JAW_45_END;
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case OPEN_JAW_45_END:
-
+    servo.Write(1300);
     state = BACK_UP_FROM_45;
     break;
   case BACK_UP_FROM_45:
-    if (chassis.moveToPoint(7.5,-1)){
+    if (chassis.moveToPoint(6,-1)){
       chassis.stopAllMotors();
      
       state = TURN_RIGHT_M;
@@ -248,7 +306,7 @@ void doStateMachine()
     }
     break;
   case  DRIVE_TO_CLEAR_ROOF_M:
-    if (chassis.moveToPoint(9,33)){
+    if (chassis.moveToPoint(7.5,33)){
       chassis.stopAllMotors();           
       state = TURN_RIGHT_M2;
     }
@@ -262,10 +320,21 @@ void doStateMachine()
 
     break;
   case CORRECTION_3:
-    distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 2.75;
-    chassis.setX(chassis.getX()-distanceError);
-    state = TURN_LEFT_M2;
+    if (waitIterations % 4 == 3) {
+      distance = rangeFinder.getAccurateDistance()/2.54;
+      if (distance>0) {
+        distanceError = distance - 3.25;
+        chassis.setY(chassis.getY()-distanceError);
+        state = TURN_LEFT_M2;
+        waitIterations = 0;
+      }
+      else {
+        waitIterations ++;
+      }
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case TURN_LEFT_M2:
     if (chassis.turnToAngle(-90)) {
@@ -289,10 +358,21 @@ void doStateMachine()
     }
     break;
   case CORRECTION_4:
-    distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 11;
-    chassis.setY(chassis.getY()-distanceError);
-    state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
+    if (waitIterations % 4 == 3) {
+      distance = rangeFinder.getAccurateDistance()/2.54;
+      if (distance>0) {
+        distanceError = distance - 8;
+        chassis.setY(chassis.getY()-distanceError);
+        state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
+        waitIterations = 0;
+      }
+      else {
+        waitIterations ++;
+      }
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case DRIVE_TO_25_ROOF_AND_RAISE_ARM:
     if (chassis.moveToPoint(1,23)){
@@ -402,18 +482,18 @@ void doStateMachine()
 
 }
 
-void loop(){
+// void loop(){
 
   
-  //arm.turnToPosition(target45pickup);
-  arm.getPositionDegrees();
-  int value = analogRead(18);
-  //Serial.println(value);
-  servo.Write(1900);
+//   //arm.turnToPosition(target45pickup);
+//   //arm.getPositionDegrees();
+//   int value = analogRead(18);
+//   Serial.println(value);
+//   servo.Write(1300);
 
   
-  delay(1000);
-}
+//   delay(1000);
+// }
 
 //servo code
 // void loop()
@@ -433,37 +513,39 @@ void loop(){
 // }
 
 
-// bool buttonPressed = false;
-// void loop(){
-//   // put your main code here, to run repeatedly:
-//   // put your main code here, to run repeatedly:
-//   rangeFinder.loop();
-//   //doStateMachine();
-//   Serial.println("\n\nX:\tY:\tAngle:\n");
-//   Serial.print(chassis.getX());
-//   Serial.print("\t");
-//   Serial.print(chassis.getY());
-//   Serial.print("\t");
-//   Serial.print(chassis.getAngleDegrees());
+bool buttonPressed = false;
+void loop(){
+  // put your main code here, to run repeatedly:
+  // put your main code here, to run repeatedly:
+  rangeFinder.loop();
+  //doStateMachine();
+  // Serial.println("\n\nX:\tY:\tAngle:\n");
+  // Serial.print(chassis.getX());
+  // Serial.print("\t");
+  // Serial.print(chassis.getY());
+  // Serial.print("\t");
+  // Serial.print(chassis.getAngleDegrees());
 
-//   checkRemote();
-//   if (pb.isPressed()) {
-//     buttonPressed = true;
-//     delay(800);
-//   }
-//   if (buttonPressed) {
-//     arm.turnToPosition(armTarget);
-//     doStateMachine();
-//     // if (chassis.turnToAngle(90)) {
-//     // //if (chassis.moveToPoint(10,21.5)) {
-//     //   //state = TURN_TO_PLATFORM_45;
-//     //   chassis.stopAllMotors();
-//     //   buttonPressed = false;
-//     // }
-//   }
-//   chassis.updatePosition();
-//   delay(5);
-// }
+  checkRemote();
+  if (pb.isPressed()) {
+    buttonPressed = true;
+    delay(800);
+  }
+  if (buttonPressed) {
+    //servo.Write(1900);
+    arm.turnToPosition(armTarget);
+    //Serial.println(arm.getPositionDegrees());
+    doStateMachine();
+    // if (chassis.turnToAngle(90)) {
+    // //if (chassis.moveToPoint(10,21.5)) {
+    //   //state = TURN_TO_PLATFORM_45;
+    //   chassis.stopAllMotors();
+    //   buttonPressed = false;
+    // }
+  }
+  chassis.updatePosition();
+  delay(5);
+}
 
 //line follower code
 //tests the values

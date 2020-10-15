@@ -32,7 +32,7 @@ void Rangefinder::loop()
   digitalWrite(triggerPin, LOW);
   this->UltrasonicISR();
   this->getDistanceCM();
-  delay(20);
+  delay(15);
 
 } 
 
@@ -46,7 +46,15 @@ float Rangefinder::getDistanceCM()
 }
 
 float Rangefinder::getAccurateDistance() {
-  
+  averagePingSummation += getDistanceCM();
+  pingIterations ++;
+  float returnValue = -1;
+  if (pingIterations == 8) {
+    pingIterations = 0;
+    returnValue = averagePingSummation/8.0;
+    averagePingSummation = 0;
+  }
+  return returnValue;
 }
 
 

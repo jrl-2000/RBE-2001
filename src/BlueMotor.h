@@ -8,7 +8,7 @@ class BlueMotor{
         BlueMotor();
         void setEffort(int effort);
         void setEffortNoDB(int effort);
-        void turnToPosition(int target);
+        void turnToPosition(float targetDegrees);
         void resetPID();
         //void moveTo(long position);
         long getPositionDegrees();
@@ -16,7 +16,7 @@ class BlueMotor{
         void reset();
         void setup();
 
-        PID armpid;
+        PID armPID;
     private:
         void setEffort(int effort, bool clockwise);
         const int tolerance = 3;
