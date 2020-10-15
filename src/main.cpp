@@ -32,6 +32,9 @@ float targetStagingPlatform = 1900;
 bool paused = false;
 float armTarget = 0;
 
+const uint8_t SensorCount = 2;
+uint16_t sensorValues[SensorCount];
+
 //State machine states
 enum States
 {
@@ -122,6 +125,8 @@ void setup() {
   state = MOVE_LIFT_FIRST_POSITION;
   chassis.initialize();
   chassis.setY(0);
+  qtr.setTypeAnalog();
+  qtr.setSensorPins((const uint8_t[]){A2, A3}, SensorCount);
 }
 float distance = 0;
 float distanceError = 0;
@@ -510,21 +515,21 @@ void loop(){
   // Serial.print(chassis.getAngleDegrees());
 
   checkRemote();
+  qtr.read(sensorValues);
   if (pb.isPressed()) {
     buttonPressed = true;
     delay(800);
   }
   if (buttonPressed) {
     //servo.Write(1900);
-    arm.turnToPosition(armTarget);
-    //Serial.println(arm.getPositionDegrees());
-    doStateMachine();
-    // if (chassis.turnToAngle(90)) {
-    // //if (chassis.moveToPoint(10,21.5)) {
-    //   //state = TURN_TO_PLATFORM_45;
-    //   chassis.stopAllMotors();
-    //   buttonPressed = false;
-    // }
+    //Serial.println(sensorValues[0]);
+   // doStateMachine();
+    if (chassis.lineFollowToPoint(0,30, sensorValues)) {
+    //if (chassis.moveToPoint(10,21.5)) {
+      //state = TURN_TO_PLATFORM_45;
+      chassis.stopAllMotors();
+      buttonPressed = false;
+    }
   }
   chassis.updatePosition();
   delay(5);

@@ -26,6 +26,8 @@ public:
     float getRightEncoder();
 
     bool moveToPoint(float targetX, float targetY);
+    bool lineFollowToPoint(float targetX, float targetY, uint16_t SensorValues[]);
+
     float slewRateCalculate (float desiredRate);
     bool turnToAngle(float targetAngle);
 

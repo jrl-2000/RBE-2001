@@ -237,6 +237,45 @@ float Chassis::slewRateCalculate (float desiredRate) {
 		return returnVal;
 }
 
+bool Chassis::lineFollowToPoint(float targetX, float targetY, uint16_t SensorValues[]) {
+  bool atPoint = false;
+	float power =0;
+	float turnPower =0;
+  if (millis()-lastSlewTime>10){
+    lastSlewTime = millis()-5;
+  }
+  power = -drivePowerPID.pidCalculate(0, sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)));
+  power = slewRateCalculate(power);
+  power = ((power<0)? -1: 1)*(abs(power)>200)? 200: abs(power);
+  power = ((reversed)? -1: 1)*power;
+
+  float projection = ((targetX-getX())*sin(getAngle())+(targetY-getY())*cos(getAngle()));
+
+  if (projection < 0) {
+    power = -power;
+  }
+
+  power = -300;
+
+  int leftSensor = SensorValues[1];
+  int rightSensor = SensorValues[0];
+
+  turnPower = 0.075 * (leftSensor - rightSensor);
+
+  motors.setEfforts((power + turnPower)*0.35, (power - turnPower)*0.35);
+
+  if (sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)) < 0.75) {
+    repsAtTarget++;
+  }
+  else {
+    repsAtTarget = 0;
+  }
+  if (repsAtTarget > 10) {
+    atPoint = true;
+    repsAtTarget = -1;
+  }
+  return atPoint;
+}
 void Chassis::stopAllMotors(){
   motors.setEfforts(0,0);
 }
