@@ -14,8 +14,8 @@
  * Defaults to a range of 1000 - 2000 us, but can be customized.
  */ 
 
-//close position is at 1800
-//open positon is 
+//close position is 358 1900
+//open positon is 263 1300
 #include <Arduino.h>
 
 class Servo32U4

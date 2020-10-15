@@ -34,7 +34,7 @@ void BlueMotor::setup(){
     attachInterrupt(digitalPinToInterrupt(ENCB), isr, CHANGE);
     reset();
     oldValue = 0;
-    armpid.pidInit(1.3,0,0);
+    armpid.pidInit(1.2,0,0);
 }
 void BlueMotor::resetPID() {
     armpid.reset(0.0);

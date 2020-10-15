@@ -19,11 +19,11 @@ Romi32U4ButtonC pb;
 QTRSensors qtr;
 
 //arm targets
-float target25pickup = 420 - 145; 
-float target45dropoff = 778 - 145;
-float target45pickup = 920 - 145;
-float target25dropoff = 169 -145;
-float targetStagingPlatform = 1969 - 145;
+float target25pickup = 420 - 195; 
+float target45dropoff = 778 - 195;
+float target45pickup = 920 - 225;
+float target25dropoff = 169 -195;
+float targetStagingPlatform = 1969 - 195;
 
 //Team 12
 //RBE 2001 A20 Final Project
@@ -402,39 +402,51 @@ void doStateMachine()
 
 }
 
-
-
-bool buttonPressed = false;
 void loop(){
-  // put your main code here, to run repeatedly:
-  // put your main code here, to run repeatedly:
-  rangeFinder.loop();
-  //doStateMachine();
-  Serial.println("\n\nX:\tY:\tAngle:\n");
-  Serial.print(chassis.getX());
-  Serial.print("\t");
-  Serial.print(chassis.getY());
-  Serial.print("\t");
-  Serial.print(chassis.getAngleDegrees());
 
-  checkRemote();
-  if (pb.isPressed()) {
-    buttonPressed = true;
-    delay(800);
-  }
-  if (buttonPressed) {
-    arm.turnToPosition(armTarget);
-    doStateMachine();
-    // if (chassis.turnToAngle(90)) {
-    // //if (chassis.moveToPoint(10,21.5)) {
-    //   //state = TURN_TO_PLATFORM_45;
-    //   chassis.stopAllMotors();
-    //   buttonPressed = false;
-    // }
-  }
-  chassis.updatePosition();
-  delay(5);
+  
+  //arm.turnToPosition(target45pickup);
+  //arm.getPositionDegrees();
+  int value = analogRead(18);
+  Serial.println(value);
+  servo.Write(1300);
+
+  
+  delay(1000);
 }
+
+
+// bool buttonPressed = false;
+// void loop(){
+//   // put your main code here, to run repeatedly:
+//   // put your main code here, to run repeatedly:
+//   rangeFinder.loop();
+//   //doStateMachine();
+//   Serial.println("\n\nX:\tY:\tAngle:\n");
+//   Serial.print(chassis.getX());
+//   Serial.print("\t");
+//   Serial.print(chassis.getY());
+//   Serial.print("\t");
+//   Serial.print(chassis.getAngleDegrees());
+
+//   checkRemote();
+//   if (pb.isPressed()) {
+//     buttonPressed = true;
+//     delay(800);
+//   }
+//   if (buttonPressed) {
+//     arm.turnToPosition(armTarget);
+//     doStateMachine();
+//     // if (chassis.turnToAngle(90)) {
+//     // //if (chassis.moveToPoint(10,21.5)) {
+//     //   //state = TURN_TO_PLATFORM_45;
+//     //   chassis.stopAllMotors();
+//     //   buttonPressed = false;
+//     // }
+//   }
+//   chassis.updatePosition();
+//   delay(5);
+// }
 
 
 
