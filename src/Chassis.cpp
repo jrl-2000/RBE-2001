@@ -141,7 +141,7 @@ bool Chassis::turnToAngle(float targetAngle) {
     turnPower = ((turnPower>0)? 1: -1) * 160;
   }
   
-  motors.setEfforts(turnPower,-turnPower);
+  motors.setEfforts(turnPower*0.5,-turnPower*0.5);
 
   if (abs(getAngleDegrees()-targetAngle)<0.5) {
     repsAtTarget++;
@@ -166,7 +166,7 @@ bool Chassis::moveToPoint(float targetX, float targetY) {
   }
   power = -drivePowerPID.pidCalculate(0, sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)));
   power = slewRateCalculate(power);
-  power = ((power<0)? -1: 1)*(abs(power)>200)? 200: abs(power);
+  power = ((power<0)? -1: 1)*(abs(power)>175)? 175: abs(power);
   power = ((reversed)? -1: 1)*power;
   //Serial.println(power);
  // if (targetY-getY())
@@ -201,7 +201,7 @@ bool Chassis::moveToPoint(float targetX, float targetY) {
   // Serial.print(turnPower);
 
  // power = 0;
-  motors.setEfforts((power + turnPower)*0.55, (power - turnPower)*0.55);
+  motors.setEfforts((power + turnPower)*0.65, (power - turnPower)*0.65);
 
   if (sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)) < 1) {
     repsAtTarget++;
@@ -246,7 +246,7 @@ bool Chassis::lineFollowToPoint(float targetX, float targetY, uint16_t SensorVal
   }
   power = -drivePowerPID.pidCalculate(0, sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)));
   power = slewRateCalculate(power);
-  power = ((power<0)? -1: 1)*(abs(power)>200)? 200: abs(power);
+  power = ((power<0)? -1: 1)*(abs(power)>190)? 190: abs(power);
   power = ((reversed)? -1: 1)*power;
 
   float projection = ((targetX-getX())*sin(getAngle())+(targetY-getY())*cos(getAngle()));
