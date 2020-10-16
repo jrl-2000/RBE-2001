@@ -39,7 +39,7 @@ void BlueMotor::resetPID() {
     armPID.reset(0.0);
 }
 void BlueMotor::turnToPosition(float targetDegrees) {
-    float effort = armPID.pidCalculate(targetDegrees, getPositionDegrees());
+    float effort = -armPID.pidCalculate(targetDegrees, getPositionDegrees());
     // Serial.print("\t");
     // Serial.print(effort);
     setEffortNoDB(effort);
@@ -80,7 +80,7 @@ long BlueMotor::getPositionDegrees() {
     return getPosition()*360/540;
 }
 long BlueMotor::getPosition(){
-    return count;
+    return -count;
 }
 void isr(){
     int newValue = (digitalRead(3) << 1) | digitalRead(2);
