@@ -1024,7 +1024,7 @@ void loop(){
   if (buttonPressed) {
     //servo.Write(1100);
     //Serial.println(sensorValues[0]);
-    doStateMachine();
+    doStateMachine2();
     arm.turnToPosition(armTarget);
 
     // if (chassis.turnToAngle(90)) {
