@@ -106,6 +106,7 @@ void checkRemoteEstop()
   {
     paused = !paused;
   }
+Serial.println(decoder.getKeyCode());
 }
 
 void setup() {
@@ -254,7 +255,7 @@ void doStateMachine()
     break;
   case OPEN_JAW_45_PLATFORM:
     if (waitIterations > 1500) {
-      state = CLOSE_JAW_45_PLATFORM;
+      state = FEEDBACK_3;
       waitIterations = 0;
     }
     else {
@@ -368,423 +369,6 @@ void doStateMachine()
     break;
   case POSITION_FOR_CROSS:
     if (chassis.moveToPoint(5.5,-4)){
-      chassis.stopAllMotors();
-     
-      state = TURN_RIGHT_M;
-    }
-    break;
-  case TURN_RIGHT_M:
-    if (chassis.turnToAngle(80)) {
-      chassis.stopAllMotors();
-      state = DRIVE_TO_CLEAR_ROOF_M;
-    }
-    break;
-  case  DRIVE_TO_CLEAR_ROOF_M:
-    if (chassis.moveToPoint(7,33)){
-      chassis.stopAllMotors();           
-      state = TURN_LEFT_M2;
-    }
-    break;
-  case TURN_RIGHT_M2:
-    if (chassis.turnToAngle(90)) {
-      chassis.stopAllMotors();
-      state = CORRECTION_3;
-
-    }
-
-    break;
-  case CORRECTION_3:
-    if (waitIterations % 4 == 3) {
-      distance = rangeFinder.getAccurateDistance()/2.54;
-      if (distance>0) {
-        distanceError = distance - 3.25;
-        chassis.setY(chassis.getY()-distanceError);
-        state = TURN_LEFT_M2;
-        waitIterations = 0;
-      }
-      else {
-        waitIterations ++;
-      }
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case TURN_LEFT_M2:
-    if (chassis.turnToAngle(-90)) {
-      chassis.stopAllMotors();
-      state = DRIVE_TO_ROOF_LINE_M;
-      chassis.setAngle(-90);
-      chassis.setY(32);
-    }
-
-    break;
-  case DRIVE_TO_ROOF_LINE_M:
-    chassis.setY(32);
-    if (chassis.lineFollowToPoint(-1.5,32,sensorValues)) {
-      chassis.stopAllMotors();           
-      state = TURN_TO_25_ROOF_1;
-      chassis.setAngle(-90);
-      chassis.setAngle(-32);
-    }
-    break;
-  case TURN_TO_25_ROOF_1:
-    armTarget = target25pickup;
-    if (chassis.turnToAngle(175)) {
-      chassis.stopAllMotors();
-      state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
-      chassis.setX(0);
-      chassis.setAngle(-180);
-    }
-    break;
-  case CORRECTION_4:
-    if (waitIterations % 4 == 3) {
-      distance = rangeFinder.getAccurateDistance()/2.54;
-      if (distance>0) {
-        distanceError = distance - 8;
-        chassis.setY(chassis.getY()-distanceError);
-        state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
-        waitIterations = 0;
-      }
-      else {
-        waitIterations ++;
-      }
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case DRIVE_TO_25_ROOF_AND_RAISE_ARM:
-    chassis.setX(0);
-    if (chassis.lineFollowToPoint(0,27.25,sensorValues)){
-      chassis.stopAllMotors();           
-      state = CLOSE_JAW_25_START;
-      chassis.setX(0);
-    }
-    break;
-  case CLOSE_JAW_25_START:
-    servo.Write(1900);
-    if (waitIterations > 120) {
-      state = OPEN_JAW_45_END;
-      state = LIFT_PLATE_25;
-      waitIterations = 0;
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case LIFT_PLATE_25:
-    armTarget = target25pickup -200;
-    state = BACK_UP_25;
-    chassis.setAngle(179.0);
-    break;
-  case BACK_UP_25:
-    if (chassis.moveToPoint(0,35.25)){
-      chassis.stopAllMotors();           
-      state = TURN_TO_PLATFORM_25;
-    }
-    break;
-  case TURN_TO_PLATFORM_25:
-    if (chassis.turnToAngle(82.5)){
-      chassis.stopAllMotors();           
-      state =  GO_TO_PLATFORM_25;
-      chassis.setY(32);
-    }
-    break;
-  case CORRECTION_5:
-    distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 10.75;
-    chassis.setX(chassis.getX()-distanceError);
-    state = GO_TO_PLATFORM_25;
-    break;
-  case GO_TO_PLATFORM_25:
-    //armTarget = targetStagingPlatform;
-    chassis.setY(32);
-    if (chassis.lineFollowToPoint(8.5,32,sensorValues)){
-      chassis.stopAllMotors();
-      state = LOWER_ARM_25;
-    }
-    break;
-  case STRAIGHTEN_4:
-    if (chassis.turnToAngle(86)){
-      chassis.stopAllMotors();
-      state = LOWER_ARM_25;
-    }
-    break;
-  case LOWER_ARM_25:
-    armTarget = targetStagingPlatform;
-    if (waitIterations > 2000) {
-      state = OPEN_JAW_25_PLATFORM;
-      waitIterations = 0;
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case OPEN_JAW_25_PLATFORM:
-    if (waitIterations > 1500) {
-      state = CLOSE_JAW_25_PLATFORM;
-      waitIterations = 0;
-    }
-    else {
-      servo.Write(1300);
-      waitIterations ++;
-    }
-    break;
-  case CLOSE_JAW_25_PLATFORM:
-    servo.Write(1900);
-     if (waitIterations > 1000) {
-      state = RAISE_ARM_25_PLATFORM;  
-      waitIterations = 0;
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case RAISE_ARM_25_PLATFORM:
-    armTarget = 600;
-    chassis.setY(32);
-    chassis.setAngle(90);
-    state = MOVE_AWAY_FROM_PLATFORM_25;
-    break;
-  case MOVE_AWAY_FROM_PLATFORM_25:
-    if (chassis.moveToPoint(1.25,25.25)){
-      chassis.stopAllMotors();           
-      state = TURN_TO_25_ROOF_2;
-    }
-    break;
-  case TURN_TO_25_ROOF_2:
-    armTarget = target25dropoff;
-    if (chassis.turnToAngle(178)){
-      chassis.stopAllMotors();
-      state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
-    }
-    break;
-  case CORRECTION_6:
-    distance = rangeFinder.getDistanceCM()/2.54;
-    distanceError = distance - 12;
-    chassis.setY(chassis.getY()-distanceError);
-    state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
-    break;
-  case DRIVE_TO_ROOF_AND_RAISE_PLATE_25:
-    chassis.setX(0);
-    //chassis.setAngle(-179);
-    if (chassis.lineFollowToPoint(0,16.6,sensorValues)){
-      chassis.stopAllMotors();           
-      state = DROP_PLATE_25;
-    }
-    break;
-  case DROP_PLATE_25:
-    servo.Write(1300);
-    state = OPEN_JAW_FINAL;
-    break;
-  case OPEN_JAW_FINAL:
-    armTarget = target25dropoff+80;
-    state = BACK_UP_FINAL;
-    break;
-  case BACK_UP_FINAL:
-    if (chassis.moveToPoint(0,33)){
-      chassis.stopAllMotors();           
-      state = STOPPED;
-    }
-    break;
-  case STOPPED:
-    
-    break;
-
-  }
-
-
-}
-
-void doStateMachine2()
-{
-  switch (state)
-  {
-  case MOVE_LIFT_FIRST_POSITION:
-    armTarget = target25pickup;
-    if (waitIterations > 100) {
-      state = DRIVE_TO_REMOVE_45;
-      waitIterations = 0;
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case DRIVE_TO_REMOVE_45:
-    servo.Write(1200);
-    if (chassis.lineFollowToPoint(0,8.25, sensorValues)){
-      chassis.stopAllMotors();
-      state = CLOSE_JAW_START;
-    }
-    break;
-  case STRAIGHTEN_1:
-    if (chassis.turnToAngle(0)){
-      chassis.stopAllMotors();
-      state = CLOSE_JAW_START;
-    }
-    break;
-  case CLOSE_JAW_START:
-    servo.Write(1900);
-    chassis.setX(0);
-    state =  LIFT_PLATE_45;
-    break;
-  case LIFT_PLATE_45:
-    armTarget = target45pickup-200;
-    state = BACK_UP_45;
-    break;
-  case BACK_UP_45:
-    if (chassis.moveToPoint(0,0)){
-      chassis.stopAllMotors();
-      state = TURN_TO_PLATFORM_45;
-    }
-    break;
-  case TURN_TO_PLATFORM_45:
-    if (chassis.turnToAngle(-90)) {
-      chassis.stopAllMotors();
-      state = GO_TO_PLATFORM_45;
-      chassis.setY(0);
-    }
-    break;
-  case CORRECTION_1:
-    if (waitIterations % 4 == 2) {
-      distance = rangeFinder.getAccurateDistance()/2.54;
-      if (distance>0) {
-        distanceError = distance - 10.5;
-        chassis.setX(chassis.getX()-distanceError);
-        state = GO_TO_PLATFORM_45;
-        waitIterations = 0;
-      }
-      else {
-        waitIterations ++;
-      }
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case GO_TO_PLATFORM_45:
-    //armTarget = targetStagingPlatform;
-    chassis.setY(0);
-    if (chassis.lineFollowToPoint(-10.5,0,sensorValues)){
-      chassis.stopAllMotors();
-      chassis.setY(0);
-      waitIterations = 0;
-      state = LOWER_ARM_45;
-
-    }
-    break;
-  case STRAIGHTEN_2:
-    if (chassis.turnToAngle(95)){
-      chassis.stopAllMotors();
-      state = LOWER_ARM_45;
-    }
-    break;
-  case LOWER_ARM_45:
-    armTarget = targetStagingPlatform;
-    if (waitIterations > 2000) {
-      state = OPEN_JAW_45_PLATFORM;
-      waitIterations = 0;
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case OPEN_JAW_45_PLATFORM:
-    if (waitIterations > 1500) {
-      state = CLOSE_JAW_45_PLATFORM;
-      waitIterations = 0;
-    }
-    else {
-      servo.Write(1300);
-      waitIterations ++;
-    }
-    break;
-  case CLOSE_JAW_45_PLATFORM:
-    servo.Write(1900);
-     if (waitIterations > 1000) {
-      state = RAISE_ARM_45_PLATFORM;  
-      waitIterations = 0;
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case RAISE_ARM_45_PLATFORM:
-    armTarget = 600;
-    //chassis.setAngle(90);
-    state = MOVE_AWAY_FROM_PLATFORM_45;
-    break;
-  case MOVE_AWAY_FROM_PLATFORM_45:
-    if (chassis.moveToPoint(0.5,0.5)){
-      chassis.stopAllMotors();     
-      state = TURN_TO_45_ROOF;
-    }
-    break;
-  case TURN_TO_45_ROOF:
-     armTarget = target25dropoff;
-    if (chassis.turnToAngle(0)) {
-      chassis.stopAllMotors();
-      state = DRIVE_TO_ROOF_AND_RAISE_PLATE_45;
-    }
-    break;
-  case CORRECTION_2:
-    if (waitIterations % 4 == 3) {
-      distance = rangeFinder.getAccurateDistance()/2.54;
-      if (distance>0) {
-        distanceError = distance - 11;
-        chassis.setY(chassis.getY()-distanceError);
-        state = DRIVE_TO_ROOF_AND_RAISE_PLATE_45;
-        waitIterations = 0;
-      }
-      else {
-        waitIterations ++;
-      }
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case DRIVE_TO_ROOF_AND_RAISE_PLATE_45:
-    chassis.setX(0);
-    if (chassis.lineFollowToPoint(0,10.625, sensorValues)){
-      chassis.stopAllMotors();    
-      state = DROP_PLATE_45;
-      chassis.setX(0);
-      chassis.setAngle(0);
-    }
-    break;
-  case STRAIGHTEN_3:
-    if (chassis.turnToAngle(0)){
-      chassis.stopAllMotors();
-      state = DROP_PLATE_45;
-    }
-    break;
-  case DROP_PLATE_45:
-    armTarget = target25dropoff+80;
-    servo.Write(1300);
-
-    if (waitIterations > 1000) {
-      state = OPEN_JAW_45_END;
-      waitIterations = 0;
-    }
-    else {
-      waitIterations ++;
-    }
-    break;
-  case OPEN_JAW_45_END:
-    armTarget = target25dropoff+80;
-    state = BACK_UP_FROM_45;
-    break;
-  case BACK_UP_FROM_45:
-    if (chassis.moveToPoint(0,4)){
-      chassis.stopAllMotors();
-     
-      state = STOPPED;
-    }
-    break;
-  case POSITION_FOR_CROSS:
-    if (chassis.moveToPoint(6,-4)){
       chassis.stopAllMotors();
      
       state = TURN_RIGHT_M;
@@ -1056,70 +640,497 @@ void doStateMachine2()
 
 
 }
-// void loop(){
 
-  
-//   //arm.turnToPosition(target45pickup);
-//   //arm.getPositionDegrees();
-//   int value = analogRead(18);
-//   Serial.println(value);
-//   servo.Write(1300);
 
-  
-//   delay(1000);
-// }
 
-//servo code
-// void loop()
+
+
+
+// void doStateMachine2()
 // {
-// //  for (int us = 1500; us < 2000; us += 50)
-// //  {
-//  servo.Write(1300);
-// //  if (us % 100 == 0)
-// //  {
-//  int value = analogRead(18);
-//  Serial.print(2000);
-//  Serial.print(" ");
-//  Serial.println(value);
-//  //}
-//  delay(4000);
-//  //}
+//   switch (state)
+//   {
+//   case MOVE_LIFT_FIRST_POSITION:
+//     armTarget = target25pickup;
+//     if (waitIterations > 100) {
+//       state = DRIVE_TO_REMOVE_45;
+//       waitIterations = 0;
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case DRIVE_TO_REMOVE_45:
+//     servo.Write(1200);
+//     if (chassis.lineFollowToPoint(0,8.25, sensorValues)){
+//       chassis.stopAllMotors();
+//       state = CLOSE_JAW_START;
+//     }
+//     break;
+//   case STRAIGHTEN_1:
+//     if (chassis.turnToAngle(0)){
+//       chassis.stopAllMotors();
+//       state = CLOSE_JAW_START;
+//     }
+//     break;
+//   case CLOSE_JAW_START:
+//     servo.Write(1900);
+//     chassis.setX(0);
+//     state =  LIFT_PLATE_45;
+//     break;
+//   case LIFT_PLATE_45:
+//     armTarget = target45pickup-200;
+//     state = BACK_UP_45;
+//     break;
+//   case BACK_UP_45:
+//     if (chassis.moveToPoint(0,0)){
+//       chassis.stopAllMotors();
+//       state = TURN_TO_PLATFORM_45;
+//     }
+//     break;
+//   case TURN_TO_PLATFORM_45:
+//     if (chassis.turnToAngle(-90)) {
+//       chassis.stopAllMotors();
+//       state = GO_TO_PLATFORM_45;
+//       chassis.setY(0);
+//     }
+//     break;
+//   case CORRECTION_1:
+//     if (waitIterations % 4 == 2) {
+//       distance = rangeFinder.getAccurateDistance()/2.54;
+//       if (distance>0) {
+//         distanceError = distance - 10.5;
+//         chassis.setX(chassis.getX()-distanceError);
+//         state = GO_TO_PLATFORM_45;
+//         waitIterations = 0;
+//       }
+//       else {
+//         waitIterations ++;
+//       }
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case GO_TO_PLATFORM_45:
+//     //armTarget = targetStagingPlatform;
+//     chassis.setY(0);
+//     if (chassis.lineFollowToPoint(-10.5,0,sensorValues)){
+//       chassis.stopAllMotors();
+//       chassis.setY(0);
+//       waitIterations = 0;
+//       state = LOWER_ARM_45;
+
+//     }
+//     break;
+//   case STRAIGHTEN_2:
+//     if (chassis.turnToAngle(95)){
+//       chassis.stopAllMotors();
+//       state = LOWER_ARM_45;
+//     }
+//     break;
+//   case LOWER_ARM_45:
+//     armTarget = targetStagingPlatform;
+//     if (waitIterations > 2000) {
+//       state = OPEN_JAW_45_PLATFORM;
+//       waitIterations = 0;
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case OPEN_JAW_45_PLATFORM:
+//     if (waitIterations > 1500) {
+//       state = CLOSE_JAW_45_PLATFORM;
+//       waitIterations = 0;
+//     }
+//     else {
+//       servo.Write(1300);
+//       waitIterations ++;
+//     }
+//     break;
+//   case CLOSE_JAW_45_PLATFORM:
+//     servo.Write(1900);
+//      if (waitIterations > 1000) {
+//       state = RAISE_ARM_45_PLATFORM;  
+//       waitIterations = 0;
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case RAISE_ARM_45_PLATFORM:
+//     armTarget = 600;
+//     //chassis.setAngle(90);
+//     state = MOVE_AWAY_FROM_PLATFORM_45;
+//     break;
+//   case MOVE_AWAY_FROM_PLATFORM_45:
+//     if (chassis.moveToPoint(0.5,0.5)){
+//       chassis.stopAllMotors();     
+//       state = TURN_TO_45_ROOF;
+//     }
+//     break;
+//   case TURN_TO_45_ROOF:
+//      armTarget = target25dropoff;
+//     if (chassis.turnToAngle(0)) {
+//       chassis.stopAllMotors();
+//       state = DRIVE_TO_ROOF_AND_RAISE_PLATE_45;
+//     }
+//     break;
+//   case CORRECTION_2:
+//     if (waitIterations % 4 == 3) {
+//       distance = rangeFinder.getAccurateDistance()/2.54;
+//       if (distance>0) {
+//         distanceError = distance - 11;
+//         chassis.setY(chassis.getY()-distanceError);
+//         state = DRIVE_TO_ROOF_AND_RAISE_PLATE_45;
+//         waitIterations = 0;
+//       }
+//       else {
+//         waitIterations ++;
+//       }
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case DRIVE_TO_ROOF_AND_RAISE_PLATE_45:
+//     chassis.setX(0);
+//     if (chassis.lineFollowToPoint(0,10.625, sensorValues)){
+//       chassis.stopAllMotors();    
+//       state = DROP_PLATE_45;
+//       chassis.setX(0);
+//       chassis.setAngle(0);
+//     }
+//     break;
+//   case STRAIGHTEN_3:
+//     if (chassis.turnToAngle(0)){
+//       chassis.stopAllMotors();
+//       state = DROP_PLATE_45;
+//     }
+//     break;
+//   case DROP_PLATE_45:
+//     armTarget = target25dropoff+80;
+//     servo.Write(1300);
+
+//     if (waitIterations > 1000) {
+//       state = OPEN_JAW_45_END;
+//       waitIterations = 0;
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case OPEN_JAW_45_END:
+//     armTarget = target25dropoff+80;
+//     state = BACK_UP_FROM_45;
+//     break;
+//   case BACK_UP_FROM_45:
+//     if (chassis.moveToPoint(0,4)){
+//       chassis.stopAllMotors();
+     
+//       state = STOPPED;
+//     }
+//     break;
+//   case POSITION_FOR_CROSS:
+//     if (chassis.moveToPoint(6,-4)){
+//       chassis.stopAllMotors();
+     
+//       state = TURN_RIGHT_M;
+//     }
+//     break;
+//   case TURN_RIGHT_M:
+//     if (chassis.turnToAngle(80)) {
+//       chassis.stopAllMotors();
+//       state = DRIVE_TO_CLEAR_ROOF_M;
+//     }
+//     break;
+//   case  DRIVE_TO_CLEAR_ROOF_M:
+//     if (chassis.moveToPoint(7,33)){
+//       chassis.stopAllMotors();           
+//       state = TURN_LEFT_M2;
+//     }
+//     break;
+//   case TURN_RIGHT_M2:
+//     if (chassis.turnToAngle(90)) {
+//       chassis.stopAllMotors();
+//       state = CORRECTION_3;
+
+//     }
+
+//     break;
+//   case CORRECTION_3:
+//     if (waitIterations % 4 == 3) {
+//       distance = rangeFinder.getAccurateDistance()/2.54;
+//       if (distance>0) {
+//         distanceError = distance - 3.25;
+//         chassis.setY(chassis.getY()-distanceError);
+//         state = TURN_LEFT_M2;
+//         waitIterations = 0;
+//       }
+//       else {
+//         waitIterations ++;
+//       }
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case TURN_LEFT_M2:
+//     if (chassis.turnToAngle(-90)) {
+//       chassis.stopAllMotors();
+//       state = DRIVE_TO_ROOF_LINE_M;
+//       chassis.setAngle(-90);
+//       chassis.setY(32);
+//     }
+
+//     break;
+//   case DRIVE_TO_ROOF_LINE_M:
+//     chassis.setY(32);
+//     if (chassis.lineFollowToPoint(-1.5,32,sensorValues)) {
+//       chassis.stopAllMotors();           
+//       state = TURN_TO_25_ROOF_1;
+//       chassis.setAngle(-90);
+//       chassis.setAngle(-32);
+//     }
+//     break;
+//   case TURN_TO_25_ROOF_1:
+//     armTarget = target25pickup;
+//     if (chassis.turnToAngle(175)) {
+//       chassis.stopAllMotors();
+//       state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
+//       chassis.setX(0);
+//       chassis.setAngle(-180);
+//     }
+//     break;
+//   case CORRECTION_4:
+//     if (waitIterations % 4 == 3) {
+//       distance = rangeFinder.getAccurateDistance()/2.54;
+//       if (distance>0) {
+//         distanceError = distance - 8;
+//         chassis.setY(chassis.getY()-distanceError);
+//         state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
+//         waitIterations = 0;
+//       }
+//       else {
+//         waitIterations ++;
+//       }
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case DRIVE_TO_25_ROOF_AND_RAISE_ARM:
+//     chassis.setX(0);
+//     if (chassis.lineFollowToPoint(0,27.75,sensorValues)){
+//       chassis.stopAllMotors();           
+//       state = FEEDBACK_5;
+//       chassis.setX(0);
+//     }
+//     break;
+//    case FEEDBACK_5:
+//     if (decoder.getKeyCode() == remote5)
+//     {
+//       state = CLOSE_JAW_25_START;
+//     }
+//     else
+//     {
+//       state = FEEDBACK_5;
+//     }
+    
+//     break;
+//   case CLOSE_JAW_25_START:
+//     servo.Write(1900);
+//     if (waitIterations > 20) {
+//       state = OPEN_JAW_45_END;
+//       state = LIFT_PLATE_25;
+//       waitIterations = 0;
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case LIFT_PLATE_25:
+//     armTarget = target25pickup -200;
+//     state = BACK_UP_25;
+//     chassis.setAngle(179.0);
+//     break;
+//   case BACK_UP_25:
+//     if (chassis.moveToPoint(0,35.25)){
+//       chassis.stopAllMotors();           
+//       state = TURN_TO_PLATFORM_25;
+//     }
+//     break;
+//   case TURN_TO_PLATFORM_25:
+//     if (chassis.turnToAngle(90)){
+//       chassis.stopAllMotors();           
+//       state =  GO_TO_PLATFORM_25;
+//       chassis.setY(32);
+//     }
+//     break;
+//   case CORRECTION_5:
+//     distance = rangeFinder.getDistanceCM()/2.54;
+//     distanceError = distance - 10.75;
+//     chassis.setX(chassis.getX()-distanceError);
+//     state = GO_TO_PLATFORM_25;
+//     break;
+//   case GO_TO_PLATFORM_25:
+//     //armTarget = targetStagingPlatform;
+//     chassis.setY(32);
+//     if (chassis.lineFollowToPoint(8.75,32,sensorValues)){
+//       chassis.stopAllMotors();
+//       state = LOWER_ARM_25;
+//     }
+//     break;
+//   case STRAIGHTEN_4:
+//     if (chassis.turnToAngle(86)){
+//       chassis.stopAllMotors();
+//       state = LOWER_ARM_25;
+//     }
+//     break;
+//   case LOWER_ARM_25:
+//     armTarget = targetStagingPlatform;
+//     if (waitIterations > 2000) {
+//       state = OPEN_JAW_25_PLATFORM;
+//       waitIterations = 0;
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//    case FEEDBACK_6:
+//     if (decoder.getKeyCode() == remote6)
+//     {
+//       state = OPEN_JAW_25_PLATFORM;
+//     }
+//     else
+//     {
+//       state = FEEDBACK_6;
+//     }
+    
+//     break;
+//   case OPEN_JAW_25_PLATFORM:
+//     if (waitIterations > 1500) {
+//       state = CLOSE_JAW_25_PLATFORM;
+//       waitIterations = 0;
+//     }
+//     else {
+//       servo.Write(1300);
+//       waitIterations ++;
+//     }
+//     break;
+//    case FEEDBACK_7:
+//     if (decoder.getKeyCode() == remote7)
+//     {
+//       state = CLOSE_JAW_25_PLATFORM;
+//     }
+//     else
+//     {
+//       state = FEEDBACK_7;
+//     }
+    
+//     break;
+//   case CLOSE_JAW_25_PLATFORM:
+//     servo.Write(1900);
+//      if (waitIterations > 1000) {
+//       state = RAISE_ARM_25_PLATFORM;  
+//       waitIterations = 0;
+//     }
+//     else {
+//       waitIterations ++;
+//     }
+//     break;
+//   case RAISE_ARM_25_PLATFORM:
+//     armTarget = target45dropoff;
+//     chassis.setY(32);
+//     chassis.setAngle(90);
+//     state = MOVE_AWAY_FROM_PLATFORM_25;
+//     break;
+//   case MOVE_AWAY_FROM_PLATFORM_25:
+//     if (chassis.moveToPoint(1.25,25.25)){
+//       chassis.stopAllMotors();           
+//       state = TURN_TO_25_ROOF_2;
+//     }
+//     break;
+//   case TURN_TO_25_ROOF_2:
+//     armTarget = target25dropoff;
+//     if (chassis.turnToAngle(178)){
+//       chassis.stopAllMotors();
+//       state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
+//     }
+//     break;
+//   case CORRECTION_6:
+//     distance = rangeFinder.getDistanceCM()/2.54;
+//     distanceError = distance - 12;
+//     chassis.setY(chassis.getY()-distanceError);
+//     state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
+//     break;
+//   case DRIVE_TO_ROOF_AND_RAISE_PLATE_25:
+//     chassis.setX(0);
+//     if (chassis.lineFollowToPoint(0,18.25,sensorValues)){
+//       chassis.stopAllMotors();           
+//       state = FEEDBACK_8;
+//     }
+//     break;
+//    case FEEDBACK_8:
+//     if (decoder.getKeyCode() == remote8)
+//     {
+//       state = DROP_PLATE_25;
+//     }
+//     else
+//     {
+//       state = FEEDBACK_8;
+//     }
+    
+//     break;
+//   case DROP_PLATE_25:
+//     servo.Write(1300);
+//     state = OPEN_JAW_FINAL;
+//     break;
+//   case OPEN_JAW_FINAL:
+//     armTarget = target25dropoff+80;
+//     state = BACK_UP_FINAL;
+//     break;
+//   case BACK_UP_FINAL:
+//     if (chassis.moveToPoint(0,33)){
+//       chassis.stopAllMotors();           
+//       state = STOPPED;
+//     }
+//     break;
+//   case STOPPED:
+    
+//     break;
+
+//   }
+
+
 // }
+
 
 
 bool buttonPressed = false;
 void loop(){
-  // put your main code here, to run repeatedly:
-  // put your main code here, to run repeatedly:
- // rangeFinder.loop();
-  //doStateMachine();
-  // Serial.println("\n\nX:\tY:\tAngle:\n");
-  // Serial.print(chassis.getX());
-  // Serial.print("\t");
-  // Serial.print(chassis.getY());
-  // Serial.print("\t");
-  //  Serial.print(chassis.getAngleDegrees());
-
-  checkRemoteEstop();
+ 
   qtr.read(sensorValues);
   // if (pb.isPressed()) {
   //   buttonPressed = true;
   //   delay(800);
   // }
+  checkRemoteEstop();
   if (paused) {
     //servo.Write(1100);
     //Serial.println(sensorValues[0]);
-    arm.setEffort(0);
+    //arm.setEffort(0);
     chassis.stopAllMotors();
 
-    // if (chassis.turnToAngle(90)) {
-    // //if (chassis.moveToPoint(10,21.5)) {
-    //   //state = TURN_TO_PLATFORM_45;
-    //   chassis.stopAllMotors();
-    //   buttonPressed = false;
-    // }
+    
   }
-    Serial.println(arm.getPositionDegrees());
+  else
+  {
+    doStateMachine();
+  }
+  
+    //Serial.println(arm.getPositionDegrees());
 
   chassis.updatePosition();
  // delay(5);
@@ -1160,3 +1171,49 @@ void loop(){
 
 //   delay(250);
 // }
+ // put your main code here, to run repeatedly:
+  // put your main code here, to run repeatedly:
+ // rangeFinder.loop();
+  //doStateMachine();
+  // Serial.println("\n\nX:\tY:\tAngle:\n");
+  // Serial.print(chassis.getX());
+  // Serial.print("\t");
+  // Serial.print(chassis.getY());
+  // Serial.print("\t");
+  //  Serial.print(chassis.getAngleDegrees());
+// void loop(){
+
+  
+//   //arm.turnToPosition(target45pickup);
+//   //arm.getPositionDegrees();
+//   int value = analogRead(18);
+//   Serial.println(value);
+//   servo.Write(1300);
+
+  
+//   delay(1000);
+// }
+
+//servo code
+// void loop()
+// {
+// //  for (int us = 1500; us < 2000; us += 50)
+// //  {
+//  servo.Write(1300);
+// //  if (us % 100 == 0)
+// //  {
+//  int value = analogRead(18);
+//  Serial.print(2000);
+//  Serial.print(" ");
+//  Serial.println(value);
+//  //}
+//  delay(4000);
+//  //}
+// }
+
+
+ // if (pb.isPressed()) {
+  //   buttonPressed = true;
+  //   delay(800);
+  // }
+
