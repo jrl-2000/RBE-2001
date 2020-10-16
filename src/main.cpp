@@ -19,11 +19,11 @@ Romi32U4ButtonC pb;
 QTRSensors qtr;
 
 //arm targets
-float target25pickup = 635; 
+float target25pickup = 580; 
 float target45dropoff = 569;
 float target45pickup = 990;
-float target25dropoff = 300;
-float targetStagingPlatform = 1900;
+float target25dropoff = 450;
+float targetStagingPlatform = 1969;
 
 //Team 12
 //RBE 2001 A20 Final Project
@@ -126,7 +126,7 @@ void setup() {
   pinMode(18, INPUT);
   state = MOVE_LIFT_FIRST_POSITION;
   chassis.initialize();
-  chassis.setY(0);
+  chassis.setY(-4.60);
   qtr.setTypeAnalog();
   qtr.setSensorPins((const uint8_t[]){A2, A3}, SensorCount);
 }
@@ -149,7 +149,7 @@ void doStateMachine()
     break;
   case DRIVE_TO_REMOVE_45:
     servo.Write(1300);
-    if (chassis.lineFollowToPoint(0,8.25, sensorValues)){
+    if (chassis.lineFollowToPoint(0,7.2, sensorValues)){
       chassis.stopAllMotors();
       state = CLOSE_JAW_START;
     }
@@ -201,7 +201,7 @@ void doStateMachine()
     break;
   case GO_TO_PLATFORM_45:
     //armTarget = targetStagingPlatform;
-    if (chassis.lineFollowToPoint(8.8,0,sensorValues)){
+    if (chassis.lineFollowToPoint(9.85,0,sensorValues)){
       chassis.stopAllMotors();
       state = LOWER_ARM_45;
       chassis.setY(0);
@@ -279,11 +279,11 @@ void doStateMachine()
     break;
   case DRIVE_TO_ROOF_AND_RAISE_PLATE_45:
     chassis.setX(0);
-    if (chassis.lineFollowToPoint(0,8.75, sensorValues)){
+    if (chassis.lineFollowToPoint(0,8.6, sensorValues)){
       chassis.stopAllMotors();    
       state = DROP_PLATE_45;
       chassis.setX(0);
-    //  chassis.setAngle(0);
+      chassis.setAngle(0);
     }
     break;
   case STRAIGHTEN_3:
@@ -370,7 +370,7 @@ void doStateMachine()
     break;
   case DRIVE_TO_ROOF_LINE_M:
     chassis.setY(32);
-    if (chassis.lineFollowToPoint(-1,32,sensorValues)) {
+    if (chassis.lineFollowToPoint(-1.75,32,sensorValues)) {
       chassis.stopAllMotors();           
       state = TURN_TO_25_ROOF_1;
       chassis.setAngle(-90);
@@ -405,7 +405,7 @@ void doStateMachine()
     break;
   case DRIVE_TO_25_ROOF_AND_RAISE_ARM:
     chassis.setX(0);
-    if (chassis.lineFollowToPoint(0,28.5,sensorValues)){
+    if (chassis.lineFollowToPoint(0,27.75,sensorValues)){
       chassis.stopAllMotors();           
       state = CLOSE_JAW_25_START;
       chassis.setX(0);
@@ -449,7 +449,7 @@ void doStateMachine()
   case GO_TO_PLATFORM_25:
     //armTarget = targetStagingPlatform;
     chassis.setY(32);
-    if (chassis.lineFollowToPoint(6.75,32,sensorValues)){
+    if (chassis.lineFollowToPoint(7.5,32,sensorValues)){
       chassis.stopAllMotors();
       state = LOWER_ARM_25;
     }
@@ -493,7 +493,7 @@ void doStateMachine()
   case RAISE_ARM_25_PLATFORM:
     armTarget = target25dropoff;
     chassis.setY(32);
- //   chassis.setAngle(90);
+    chassis.setAngle(90);
     state = MOVE_AWAY_FROM_PLATFORM_25;
     break;
   case MOVE_AWAY_FROM_PLATFORM_25:
@@ -516,7 +516,7 @@ void doStateMachine()
     break;
   case DRIVE_TO_ROOF_AND_RAISE_PLATE_25:
     chassis.setX(0);
-    if (chassis.lineFollowToPoint(0,22.4,sensorValues)){
+    if (chassis.lineFollowToPoint(0,22.7,sensorValues)){
       chassis.stopAllMotors();           
       state = DROP_PLATE_25;
     }

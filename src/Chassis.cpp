@@ -141,7 +141,7 @@ bool Chassis::turnToAngle(float targetAngle) {
     turnPower = ((turnPower>0)? 1: -1) * 160;
   }
   
-  motors.setEfforts(turnPower,-turnPower);
+  motors.setEfforts(turnPower*0.5,-turnPower*0.5);
 
   if (abs(getAngleDegrees()-targetAngle)<0.5) {
     repsAtTarget++;
@@ -201,7 +201,7 @@ bool Chassis::moveToPoint(float targetX, float targetY) {
   // Serial.print(turnPower);
 
  // power = 0;
-  motors.setEfforts((power + turnPower)*0.55, (power - turnPower)*0.55);
+  motors.setEfforts((power + turnPower)*0.65, (power - turnPower)*0.65);
 
   if (sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)) < 1) {
     repsAtTarget++;
