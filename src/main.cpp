@@ -21,8 +21,8 @@ QTRSensors qtr;
 //arm targets
 float target25pickup = 580; 
 float target45dropoff = 569;
-float target45pickup = 1030;
-float target25dropoff = 200;
+float target45pickup = 990;
+float target25dropoff = 450;
 float targetStagingPlatform = 1969;
 
 //Team 12
@@ -122,7 +122,7 @@ void setup() {
   pinMode(18, INPUT);
   state = MOVE_LIFT_FIRST_POSITION;
   chassis.initialize();
-  chassis.setY(4.4);
+  chassis.setY(-4.60);
   qtr.setTypeAnalog();
   qtr.setSensorPins((const uint8_t[]){A2, A3}, SensorCount);
 }
@@ -135,7 +135,7 @@ void doStateMachine()
   {
   case MOVE_LIFT_FIRST_POSITION:
     armTarget = target45pickup;
-    if (waitIterations > 350) {
+    if (waitIterations > 20) {
       state = DRIVE_TO_REMOVE_45;
       waitIterations = 0;
     }
@@ -145,7 +145,7 @@ void doStateMachine()
     break;
   case DRIVE_TO_REMOVE_45:
     servo.Write(1300);
-    if (chassis.lineFollowToPoint(0,8, sensorValues)){
+    if (chassis.lineFollowToPoint(0,7.2, sensorValues)){
       chassis.stopAllMotors();
       state = FEEDBACK_1;
     }
@@ -175,18 +175,11 @@ void doStateMachine()
     state =  LIFT_PLATE_45;
     break;
   case LIFT_PLATE_45:
-    armTarget = 380;
-    if (waitIterations > 350) {
-      state = DRIVE_TO_REMOVE_45;
-      waitIterations = 0;
-    }
-    else {
-      waitIterations ++;
-    }
+    armTarget = target45pickup-200;
     state = BACK_UP_45;
     break;
   case BACK_UP_45:
-    if (chassis.moveToPoint(0,-0.5)){
+    if (chassis.moveToPoint(0,0)){
       chassis.stopAllMotors();
       state = TURN_TO_PLATFORM_45;
     }
@@ -217,13 +210,10 @@ void doStateMachine()
     break;
   case GO_TO_PLATFORM_45:
     //armTarget = targetStagingPlatform;
-    chassis.setY(0);
-    if (chassis.lineFollowToPoint(10.5,0,sensorValues)){
+    if (chassis.lineFollowToPoint(9.85,0,sensorValues)){
       chassis.stopAllMotors();
-      chassis.setY(0);
-      waitIterations = 0;
       state = LOWER_ARM_45;
-
+      chassis.setY(0);
     }
     break;
   case STRAIGHTEN_2:
@@ -234,7 +224,7 @@ void doStateMachine()
     break;
   case LOWER_ARM_45:
     armTarget = targetStagingPlatform;
-    if (waitIterations > 2000) {
+    if (waitIterations > 250) {
       state = OPEN_JAW_45_PLATFORM;
       waitIterations = 0;
     }
@@ -254,8 +244,13 @@ void doStateMachine()
     
     break;
   case OPEN_JAW_45_PLATFORM:
+<<<<<<< HEAD
     if (waitIterations > 1500) {
       state = FEEDBACK_3;
+=======
+    if (waitIterations > 150) {
+      state = CLOSE_JAW_45_PLATFORM;
+>>>>>>> parent of 2d8eed8... It fucking works part 2
       waitIterations = 0;
     }
     else {
@@ -276,7 +271,7 @@ void doStateMachine()
     break;
   case CLOSE_JAW_45_PLATFORM:
     servo.Write(1900);
-     if (waitIterations > 1000) {
+     if (waitIterations > 100) {
       state = RAISE_ARM_45_PLATFORM;  
       waitIterations = 0;
     }
@@ -320,7 +315,7 @@ void doStateMachine()
     break;
   case DRIVE_TO_ROOF_AND_RAISE_PLATE_45:
     chassis.setX(0);
-    if (chassis.lineFollowToPoint(0,9.5, sensorValues)){
+    if (chassis.lineFollowToPoint(0,8.6, sensorValues)){
       chassis.stopAllMotors();    
       state = FEEDBACK_4;
       chassis.setX(0);
@@ -345,7 +340,7 @@ void doStateMachine()
     }
     break;
   case DROP_PLATE_45:
-    armTarget = target45dropoff+80;
+    armTarget = target45dropoff+50;
     servo.Write(1300);
 
     if (waitIterations > 100) {
@@ -357,7 +352,7 @@ void doStateMachine()
     }
     break;
   case OPEN_JAW_45_END:
-    armTarget = target45dropoff+300;
+    armTarget = target45dropoff+200;
     state = BACK_UP_FROM_45;
     break;
   case BACK_UP_FROM_45:
@@ -368,6 +363,7 @@ void doStateMachine()
     }
     break;
   case POSITION_FOR_CROSS:
+<<<<<<< HEAD
     if (chassis.moveToPoint(5.5,-4)){
       chassis.stopAllMotors();
      
@@ -855,6 +851,30 @@ void doStateMachine()
 //     if (chassis.turnToAngle(90)) {
 //       chassis.stopAllMotors();
 //       state = CORRECTION_3;
+=======
+    if (chassis.moveToPoint(6,-4)){
+      chassis.stopAllMotors();
+     
+      state = TURN_RIGHT_M;
+    }
+    break;
+  case TURN_RIGHT_M:
+    if (chassis.turnToAngle(80)) {
+      chassis.stopAllMotors();
+      state = DRIVE_TO_CLEAR_ROOF_M;
+    }
+    break;
+  case  DRIVE_TO_CLEAR_ROOF_M:
+    if (chassis.moveToPoint(7,32)){
+      chassis.stopAllMotors();           
+      state = TURN_LEFT_M2;
+    }
+    break;
+  case TURN_RIGHT_M2:
+    if (chassis.turnToAngle(90)) {
+      chassis.stopAllMotors();
+      state = CORRECTION_3;
+>>>>>>> parent of 2d8eed8... It fucking works part 2
 
 //     }
 
@@ -884,6 +904,7 @@ void doStateMachine()
 //       chassis.setY(32);
 //     }
 
+<<<<<<< HEAD
 //     break;
 //   case DRIVE_TO_ROOF_LINE_M:
 //     chassis.setY(32);
@@ -937,6 +958,177 @@ void doStateMachine()
 //     {
 //       state = FEEDBACK_5;
 //     }
+=======
+    break;
+  case DRIVE_TO_ROOF_LINE_M:
+    chassis.setY(32);
+    if (chassis.lineFollowToPoint(-1.75,32,sensorValues)) {
+      chassis.stopAllMotors();           
+      state = TURN_TO_25_ROOF_1;
+      chassis.setAngle(-90);
+      chassis.setAngle(-32);
+    }
+    break;
+  case TURN_TO_25_ROOF_1:
+    armTarget = target25pickup;
+    if (chassis.turnToAngle(176)) {
+      chassis.stopAllMotors();
+      state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
+      chassis.setX(0);
+      chassis.setAngle(-180);
+    }
+    break;
+  case CORRECTION_4:
+    if (waitIterations % 4 == 3) {
+      distance = rangeFinder.getAccurateDistance()/2.54;
+      if (distance>0) {
+        distanceError = distance - 8;
+        chassis.setY(chassis.getY()-distanceError);
+        state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
+        waitIterations = 0;
+      }
+      else {
+        waitIterations ++;
+      }
+    }
+    else {
+      waitIterations ++;
+    }
+    break;
+  case DRIVE_TO_25_ROOF_AND_RAISE_ARM:
+    chassis.setX(0);
+    if (chassis.lineFollowToPoint(0,27.75,sensorValues)){
+      chassis.stopAllMotors();           
+      state = CLOSE_JAW_25_START;
+      chassis.setX(0);
+    }
+    break;
+  case CLOSE_JAW_25_START:
+    servo.Write(1900);
+    if (waitIterations > 20) {
+      state = OPEN_JAW_45_END;
+      state = LIFT_PLATE_25;
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
+    break;
+  case LIFT_PLATE_25:
+    armTarget = target25pickup -200;
+    state = BACK_UP_25;
+    chassis.setAngle(179.0);
+    break;
+  case BACK_UP_25:
+    if (chassis.moveToPoint(0,35.25)){
+      chassis.stopAllMotors();           
+      state = TURN_TO_PLATFORM_25;
+    }
+    break;
+  case TURN_TO_PLATFORM_25:
+    if (chassis.turnToAngle(90)){
+      chassis.stopAllMotors();           
+      state =  GO_TO_PLATFORM_25;
+      chassis.setY(32);
+    }
+    break;
+  case CORRECTION_5:
+    distance = rangeFinder.getDistanceCM()/2.54;
+    distanceError = distance - 10.75;
+    chassis.setX(chassis.getX()-distanceError);
+    state = GO_TO_PLATFORM_25;
+    break;
+  case GO_TO_PLATFORM_25:
+    //armTarget = targetStagingPlatform;
+    chassis.setY(32);
+    if (chassis.lineFollowToPoint(7.5,32,sensorValues)){
+      chassis.stopAllMotors();
+      state = LOWER_ARM_25;
+    }
+    break;
+  case STRAIGHTEN_4:
+    if (chassis.turnToAngle(86)){
+      chassis.stopAllMotors();
+      state = LOWER_ARM_25;
+    }
+    break;
+  case LOWER_ARM_25:
+    armTarget = targetStagingPlatform;
+    if (waitIterations > 250) {
+      state = OPEN_JAW_25_PLATFORM;
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
+    break;
+  case OPEN_JAW_25_PLATFORM:
+    if (waitIterations > 150) {
+      state = CLOSE_JAW_25_PLATFORM;
+      waitIterations = 0;
+    }
+    else {
+      servo.Write(1300);
+      waitIterations ++;
+    }
+    break;
+  case CLOSE_JAW_25_PLATFORM:
+    servo.Write(1900);
+     if (waitIterations > 100) {
+      state = RAISE_ARM_25_PLATFORM;  
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
+    break;
+  case RAISE_ARM_25_PLATFORM:
+    armTarget = target25dropoff;
+    chassis.setY(32);
+    chassis.setAngle(90);
+    state = MOVE_AWAY_FROM_PLATFORM_25;
+    break;
+  case MOVE_AWAY_FROM_PLATFORM_25:
+    if (chassis.moveToPoint(-1.25,30)){
+      chassis.stopAllMotors();           
+      state = TURN_TO_25_ROOF_2;
+    }
+    break;
+  case TURN_TO_25_ROOF_2:
+    if (chassis.turnToAngle(178)){
+      chassis.stopAllMotors();
+      state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
+    }
+    break;
+  case CORRECTION_6:
+    distance = rangeFinder.getDistanceCM()/2.54;
+    distanceError = distance - 12;
+    chassis.setY(chassis.getY()-distanceError);
+    state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
+    break;
+  case DRIVE_TO_ROOF_AND_RAISE_PLATE_25:
+    chassis.setX(0);
+    if (chassis.lineFollowToPoint(0,22.7,sensorValues)){
+      chassis.stopAllMotors();           
+      state = DROP_PLATE_25;
+    }
+    break;
+  case DROP_PLATE_25:
+    servo.Write(1300);
+    state = OPEN_JAW_FINAL;
+    break;
+  case OPEN_JAW_FINAL:
+    armTarget = target25dropoff+80;
+    state = BACK_UP_FINAL;
+    break;
+  case BACK_UP_FINAL:
+    if (chassis.moveToPoint(0,33)){
+      chassis.stopAllMotors();           
+      state = STOPPED;
+    }
+    break;
+  case STOPPED:
+>>>>>>> parent of 2d8eed8... It fucking works part 2
     
 //     break;
 //   case CLOSE_JAW_25_START:
@@ -1101,7 +1293,13 @@ void doStateMachine()
     
 //     break;
 
+<<<<<<< HEAD
 //   }
+=======
+}
+
+// void loop(){
+>>>>>>> parent of 2d8eed8... It fucking works part 2
 
 
 // }
@@ -1110,7 +1308,22 @@ void doStateMachine()
 
 bool buttonPressed = false;
 void loop(){
+<<<<<<< HEAD
  
+=======
+  // put your main code here, to run repeatedly:
+  // put your main code here, to run repeatedly:
+  rangeFinder.loop();
+  //doStateMachine();
+  Serial.println("\n\nX:\tY:\tAngle:\n");
+  Serial.print(chassis.getX());
+  Serial.print("\t");
+  Serial.print(chassis.getY());
+  Serial.print("\t");
+   Serial.print(chassis.getAngleDegrees());
+
+  checkRemote();
+>>>>>>> parent of 2d8eed8... It fucking works part 2
   qtr.read(sensorValues);
   // if (pb.isPressed()) {
   //   buttonPressed = true;
@@ -1123,6 +1336,7 @@ void loop(){
     //arm.setEffort(0);
     chassis.stopAllMotors();
 
+<<<<<<< HEAD
     
   }
   else
@@ -1132,8 +1346,18 @@ void loop(){
   
     //Serial.println(arm.getPositionDegrees());
 
+=======
+    //Serial.println(arm.getPositionDegrees());
+    // if (chassis.turnToAngle(90)) {
+    // //if (chassis.moveToPoint(10,21.5)) {
+    //   //state = TURN_TO_PLATFORM_45;
+    //   chassis.stopAllMotors();
+    //   buttonPressed = false;
+    // }
+  }
+>>>>>>> parent of 2d8eed8... It fucking works part 2
   chassis.updatePosition();
- // delay(5);
+  delay(5);
 }
 
 //line follower code

@@ -166,7 +166,7 @@ bool Chassis::moveToPoint(float targetX, float targetY) {
   }
   power = -drivePowerPID.pidCalculate(0, sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)));
   power = slewRateCalculate(power);
-  power = ((power<0)? -1: 1)*(abs(power)>175)? 175: abs(power);
+  power = ((power<0)? -1: 1)*(abs(power)>200)? 200: abs(power);
   power = ((reversed)? -1: 1)*power;
   //Serial.println(power);
  // if (targetY-getY())
@@ -246,7 +246,7 @@ bool Chassis::lineFollowToPoint(float targetX, float targetY, uint16_t SensorVal
   }
   power = -drivePowerPID.pidCalculate(0, sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)));
   power = slewRateCalculate(power);
-  power = ((power<0)? -1: 1)*(abs(power)>190)? 190: abs(power);
+  power = ((power<0)? -1: 1)*(abs(power)>200)? 200: abs(power);
   power = ((reversed)? -1: 1)*power;
 
   float projection = ((targetX-getX())*sin(getAngle())+(targetY-getY())*cos(getAngle()));
