@@ -29,7 +29,7 @@ float targetStagingPlatform = 1900;
 //RBE 2001 A20 Final Project
 //Brian Boxell, Jonathan Lopez, Nick Grumski
 
-bool paused = false;
+
 float armTarget = 0;
 
 const uint8_t SensorCount = 2;
@@ -39,7 +39,6 @@ uint16_t sensorValues[SensorCount];
 enum States
 {
   MOVE_LIFT_FIRST_POSITION,
-  CORRECTION_0,
   DRIVE_TO_REMOVE_45,
   STRAIGHTEN_1,
   CLOSE_JAW_START,
@@ -57,7 +56,6 @@ enum States
   CLOSE_JAW_45_PLATFORM,
   RAISE_ARM_45_PLATFORM,
   MOVE_AWAY_FROM_PLATFORM_45,
-
   TURN_TO_45_ROOF,
   CORRECTION_2,
   DRIVE_TO_ROOF_AND_RAISE_PLATE_45,
@@ -71,8 +69,6 @@ enum States
   DRIVE_TO_CLEAR_ROOF_M,
   TURN_RIGHT_M2,
   CORRECTION_3,
-  TURN_LEFT_M,
-  DRIVE_TO_PLATFORM_LINE_M,
   TURN_LEFT_M2,
   DRIVE_TO_ROOF_LINE_M,
   TURN_TO_25_ROOF_1,
@@ -103,13 +99,12 @@ enum States
   STOPPED
 } state;
 
-
-void checkRemote()
+bool paused = true;
+void checkRemoteEstop()
 {
   if (decoder.getKeyCode() == remotePlayPause)
   {
     paused = !paused;
-    Serial.println(paused ? "Paused" : "Running");
   }
 }
 
@@ -151,8 +146,21 @@ void doStateMachine()
     servo.Write(1300);
     if (chassis.lineFollowToPoint(0,8.25, sensorValues)){
       chassis.stopAllMotors();
+      state = FEEDBACK_1;
+    }
+    break;
+  case FEEDBACK_1:
+    if (decoder.getKeyCode() == remote1)
+    {
       state = CLOSE_JAW_START;
     }
+    else
+    {
+      {
+        state = FEEDBACK_1;
+      }
+    }
+    
     break;
   case STRAIGHTEN_1:
     if (chassis.turnToAngle(0)){
@@ -216,22 +224,44 @@ void doStateMachine()
   case LOWER_ARM_45:
     armTarget = targetStagingPlatform;
     if (waitIterations > 250) {
-      state = OPEN_JAW_45_PLATFORM;
+      state = FEEDBACK_2;
       waitIterations = 0;
     }
     else {
       waitIterations ++;
     }
     break;
+  case FEEDBACK_2:
+    if (decoder.getKeyCode() == remote2)
+    {
+      state = OPEN_JAW_45_PLATFORM;
+    }
+    else
+    {
+      state = FEEDBACK_2;
+    }
+    
+    break;
   case OPEN_JAW_45_PLATFORM:
     if (waitIterations > 150) {
-      state = CLOSE_JAW_45_PLATFORM;
+      state = FEEDBACK_3;
       waitIterations = 0;
     }
     else {
       servo.Write(1300);
       waitIterations ++;
     }
+    break;
+  case FEEDBACK_3:
+    if (decoder.getKeyCode() == remote3)
+    {
+      state = CLOSE_JAW_45_PLATFORM;
+    }
+    else
+    {
+      state = FEEDBACK_3;
+    }
+    
     break;
   case CLOSE_JAW_45_PLATFORM:
     servo.Write(1900);
@@ -281,10 +311,21 @@ void doStateMachine()
     chassis.setX(0);
     if (chassis.lineFollowToPoint(0,8.75, sensorValues)){
       chassis.stopAllMotors();    
-      state = DROP_PLATE_45;
+      state = FEEDBACK_4;
       chassis.setX(0);
     //  chassis.setAngle(0);
     }
+    break;
+  case FEEDBACK_4:
+    if (decoder.getKeyCode() == remote4)
+    {
+      state = DROP_PLATE_45;
+    }
+    else
+    {
+      state = FEEDBACK_4;
+    }
+    
     break;
   case STRAIGHTEN_3:
     if (chassis.turnToAngle(0)){
@@ -407,9 +448,20 @@ void doStateMachine()
     chassis.setX(0);
     if (chassis.lineFollowToPoint(0,28.5,sensorValues)){
       chassis.stopAllMotors();           
-      state = CLOSE_JAW_25_START;
+      state = FEEDBACK_5;
       chassis.setX(0);
     }
+    break;
+   case FEEDBACK_5:
+    if (decoder.getKeyCode() == remote5)
+    {
+      state = CLOSE_JAW_25_START;
+    }
+    else
+    {
+      state = FEEDBACK_5;
+    }
+    
     break;
   case CLOSE_JAW_25_START:
     servo.Write(1900);
@@ -463,22 +515,44 @@ void doStateMachine()
   case LOWER_ARM_25:
     armTarget = targetStagingPlatform;
     if (waitIterations > 250) {
-      state = OPEN_JAW_25_PLATFORM;
+      state = FEEDBACK_6;
       waitIterations = 0;
     }
     else {
       waitIterations ++;
     }
     break;
+   case FEEDBACK_6:
+    if (decoder.getKeyCode() == remote6)
+    {
+      state = OPEN_JAW_25_PLATFORM;
+    }
+    else
+    {
+      state = FEEDBACK_6;
+    }
+    
+    break;
   case OPEN_JAW_25_PLATFORM:
     if (waitIterations > 150) {
-      state = CLOSE_JAW_25_PLATFORM;
+      state = FEEDBACK_7;
       waitIterations = 0;
     }
     else {
       servo.Write(1300);
       waitIterations ++;
     }
+    break;
+   case FEEDBACK_7:
+    if (decoder.getKeyCode() == remote7)
+    {
+      state = CLOSE_JAW_25_PLATFORM;
+    }
+    else
+    {
+      state = FEEDBACK_7;
+    }
+    
     break;
   case CLOSE_JAW_25_PLATFORM:
     servo.Write(1900);
@@ -518,8 +592,19 @@ void doStateMachine()
     chassis.setX(0);
     if (chassis.lineFollowToPoint(0,22.4,sensorValues)){
       chassis.stopAllMotors();           
+      state = FEEDBACK_8;
+    }
+    break;
+   case FEEDBACK_8:
+    if (decoder.getKeyCode() == remote8)
+    {
       state = DROP_PLATE_25;
     }
+    else
+    {
+      state = FEEDBACK_8;
+    }
+    
     break;
   case DROP_PLATE_25:
     servo.Write(1300);
@@ -578,7 +663,6 @@ void doStateMachine()
 bool buttonPressed = false;
 void loop(){
   // put your main code here, to run repeatedly:
-  // put your main code here, to run repeatedly:
   rangeFinder.loop();
   //doStateMachine();
   Serial.println("\n\nX:\tY:\tAngle:\n");
@@ -588,17 +672,17 @@ void loop(){
   Serial.print("\t");
    Serial.print(chassis.getAngleDegrees());
 
-  checkRemote();
+  checkRemoteEstop();
   qtr.read(sensorValues);
-  if (pb.isPressed()) {
-    buttonPressed = true;
-    delay(800);
-  }
-  if (buttonPressed) {
+  // if (pb.isPressed()) {
+  //   buttonPressed = true;
+  //   delay(800);
+  // }
+  if (paused) {
     //servo.Write(1100);
     //Serial.println(sensorValues[0]);
-    doStateMachine();
-    arm.turnToPosition(armTarget);
+    arm.setEffort(0);
+    chassis.stopAllMotors();
 
     //Serial.println(arm.getPositionDegrees());
     // if (chassis.turnToAngle(90)) {
@@ -608,8 +692,13 @@ void loop(){
     //   buttonPressed = false;
     // }
   }
+  else
+  {
+     doStateMachine();
+    arm.turnToPosition(armTarget);
+  }
+  
   chassis.updatePosition();
-  delay(5);
 }
 
 //line follower code
