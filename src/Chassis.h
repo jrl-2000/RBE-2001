@@ -45,7 +45,7 @@ public:
 
     unsigned long lastSlewTime = millis();
     float lastSlewRate = 0;
-    float maxAccel = 0.2;
+    float maxAccel = 1.0;
     
     float Sl = wheelTrack/2; //distance from tracking center to middle of left wheel
     float Sr = wheelTrack/2; //distance from tracking center to middle of right wheel

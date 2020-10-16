@@ -77,7 +77,7 @@ void BlueMotor::reset(){
     errorCount = 0;
 }
 long BlueMotor::getPositionDegrees() {
-    return getPosition()*360/540.0;
+    return getPosition()*360/540;
 }
 long BlueMotor::getPosition(){
     return -count;
