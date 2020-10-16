@@ -18,6 +18,8 @@ public:
     void  setX(float newX);
     void  setY(float newY);
 
+    void setAngle(float newAngle);
+
     float getAngleDegrees();
     float getAngle();
     void updatePosition();
@@ -43,7 +45,7 @@ public:
 
     unsigned long lastSlewTime = millis();
     float lastSlewRate = 0;
-    float maxAccel = 1.9;
+    float maxAccel = 1.4;
     
     float Sl = wheelTrack/2; //distance from tracking center to middle of left wheel
     float Sr = wheelTrack/2; //distance from tracking center to middle of right wheel

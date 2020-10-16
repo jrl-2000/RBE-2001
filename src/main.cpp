@@ -19,10 +19,10 @@ Romi32U4ButtonC pb;
 QTRSensors qtr;
 
 //arm targets
-float target25pickup = 300; 
+float target25pickup = 635; 
 float target45dropoff = 569;
-float target45pickup = 960;
-float target25dropoff = 130;
+float target45pickup = 990;
+float target25dropoff = 300;
 float targetStagingPlatform = 1900;
 
 //Team 12
@@ -57,6 +57,7 @@ enum States
   CLOSE_JAW_45_PLATFORM,
   RAISE_ARM_45_PLATFORM,
   MOVE_AWAY_FROM_PLATFORM_45,
+
   TURN_TO_45_ROOF,
   CORRECTION_2,
   DRIVE_TO_ROOF_AND_RAISE_PLATE_45,
@@ -65,6 +66,7 @@ enum States
   FEEDBACK_4,
   OPEN_JAW_45_END,
   BACK_UP_FROM_45,
+  POSITION_FOR_CROSS,
   TURN_RIGHT_M,
   DRIVE_TO_CLEAR_ROOF_M,
   TURN_RIGHT_M2,
@@ -147,7 +149,7 @@ void doStateMachine()
     break;
   case DRIVE_TO_REMOVE_45:
     servo.Write(1300);
-    if (chassis.moveToPoint(0,9.25)){
+    if (chassis.lineFollowToPoint(0,8.25, sensorValues)){
       chassis.stopAllMotors();
       state = CLOSE_JAW_START;
     }
@@ -160,6 +162,7 @@ void doStateMachine()
     break;
   case CLOSE_JAW_START:
     servo.Write(1900);
+    chassis.setX(0);
     state =  LIFT_PLATE_45;
     break;
   case LIFT_PLATE_45:
@@ -167,15 +170,16 @@ void doStateMachine()
     state = BACK_UP_45;
     break;
   case BACK_UP_45:
-    if (chassis.moveToPoint(0,-1)){
+    if (chassis.moveToPoint(0,0)){
       chassis.stopAllMotors();
       state = TURN_TO_PLATFORM_45;
     }
     break;
   case TURN_TO_PLATFORM_45:
-    if (chassis.turnToAngle(94)) {
+    if (chassis.turnToAngle(90)) {
       chassis.stopAllMotors();
-      state = CORRECTION_1;
+      state = GO_TO_PLATFORM_45;
+      chassis.setY(0);
     }
     break;
   case CORRECTION_1:
@@ -197,9 +201,10 @@ void doStateMachine()
     break;
   case GO_TO_PLATFORM_45:
     //armTarget = targetStagingPlatform;
-    if (chassis.moveToPoint(9.5,-2.2)){
+    if (chassis.lineFollowToPoint(8.8,0,sensorValues)){
       chassis.stopAllMotors();
-      state = STRAIGHTEN_2;
+      state = LOWER_ARM_45;
+      chassis.setY(0);
     }
     break;
   case STRAIGHTEN_2:
@@ -240,10 +245,11 @@ void doStateMachine()
     break;
   case RAISE_ARM_45_PLATFORM:
     armTarget = target45dropoff;
+    //chassis.setAngle(90);
     state = MOVE_AWAY_FROM_PLATFORM_45;
     break;
   case MOVE_AWAY_FROM_PLATFORM_45:
-    if (chassis.moveToPoint(-0.5,0)){
+    if (chassis.moveToPoint(0,0.5)){
       chassis.stopAllMotors();     
       state = TURN_TO_45_ROOF;
     }
@@ -251,7 +257,7 @@ void doStateMachine()
   case TURN_TO_45_ROOF:
     if (chassis.turnToAngle(0)) {
       chassis.stopAllMotors();
-      state = CORRECTION_2;
+      state = DRIVE_TO_ROOF_AND_RAISE_PLATE_45;
     }
     break;
   case CORRECTION_2:
@@ -272,9 +278,12 @@ void doStateMachine()
     }
     break;
   case DRIVE_TO_ROOF_AND_RAISE_PLATE_45:
-    if (chassis.moveToPoint(0,8.75)){
+    chassis.setX(0);
+    if (chassis.lineFollowToPoint(0,8.75, sensorValues)){
       chassis.stopAllMotors();    
       state = DROP_PLATE_45;
+      chassis.setX(0);
+    //  chassis.setAngle(0);
     }
     break;
   case STRAIGHTEN_3:
@@ -285,6 +294,8 @@ void doStateMachine()
     break;
   case DROP_PLATE_45:
     armTarget = target45dropoff+50;
+    servo.Write(1300);
+
     if (waitIterations > 100) {
       state = OPEN_JAW_45_END;
       waitIterations = 0;
@@ -294,26 +305,33 @@ void doStateMachine()
     }
     break;
   case OPEN_JAW_45_END:
-    servo.Write(1300);
+    armTarget = target45dropoff+200;
     state = BACK_UP_FROM_45;
     break;
   case BACK_UP_FROM_45:
-    if (chassis.moveToPoint(6,-1)){
+    if (chassis.moveToPoint(0,4)){
+      chassis.stopAllMotors();
+     
+      state = POSITION_FOR_CROSS;
+    }
+    break;
+  case POSITION_FOR_CROSS:
+    if (chassis.moveToPoint(6,-4)){
       chassis.stopAllMotors();
      
       state = TURN_RIGHT_M;
     }
     break;
   case TURN_RIGHT_M:
-    if (chassis.turnToAngle(76)) {
+    if (chassis.turnToAngle(80)) {
       chassis.stopAllMotors();
       state = DRIVE_TO_CLEAR_ROOF_M;
     }
     break;
   case  DRIVE_TO_CLEAR_ROOF_M:
-    if (chassis.moveToPoint(7.5,33)){
+    if (chassis.moveToPoint(7,32)){
       chassis.stopAllMotors();           
-      state = TURN_RIGHT_M2;
+      state = TURN_LEFT_M2;
     }
     break;
   case TURN_RIGHT_M2:
@@ -345,21 +363,27 @@ void doStateMachine()
     if (chassis.turnToAngle(-90)) {
       chassis.stopAllMotors();
       state = DRIVE_TO_ROOF_LINE_M;
-
+      chassis.setAngle(-90);
+      chassis.setY(32);
     }
 
     break;
   case DRIVE_TO_ROOF_LINE_M:
-    if (chassis.moveToPoint(0,33)){
+    chassis.setY(32);
+    if (chassis.lineFollowToPoint(-1,32,sensorValues)) {
       chassis.stopAllMotors();           
       state = TURN_TO_25_ROOF_1;
+      chassis.setAngle(-90);
+      chassis.setAngle(-32);
     }
     break;
   case TURN_TO_25_ROOF_1:
     armTarget = target25pickup;
-    if (chassis.turnToAngle(172)) {
+    if (chassis.turnToAngle(176)) {
       chassis.stopAllMotors();
-      state = CORRECTION_4;
+      state = DRIVE_TO_25_ROOF_AND_RAISE_ARM;
+      chassis.setX(0);
+      chassis.setAngle(-180);
     }
     break;
   case CORRECTION_4:
@@ -380,29 +404,40 @@ void doStateMachine()
     }
     break;
   case DRIVE_TO_25_ROOF_AND_RAISE_ARM:
-    if (chassis.moveToPoint(1,23)){
+    chassis.setX(0);
+    if (chassis.lineFollowToPoint(0,28.5,sensorValues)){
       chassis.stopAllMotors();           
       state = CLOSE_JAW_25_START;
+      chassis.setX(0);
     }
     break;
   case CLOSE_JAW_25_START:
-
-    state = LIFT_PLATE_25;
+    servo.Write(1900);
+    if (waitIterations > 20) {
+      state = OPEN_JAW_45_END;
+      state = LIFT_PLATE_25;
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case LIFT_PLATE_25:
-
+    armTarget = target25pickup -200;
     state = BACK_UP_25;
+    chassis.setAngle(179.0);
     break;
   case BACK_UP_25:
-    if (chassis.moveToPoint(2,33)){
+    if (chassis.moveToPoint(0,35.25)){
       chassis.stopAllMotors();           
       state = TURN_TO_PLATFORM_25;
     }
     break;
   case TURN_TO_PLATFORM_25:
-    if (chassis.turnToAngle(82)){
+    if (chassis.turnToAngle(90)){
       chassis.stopAllMotors();           
       state =  GO_TO_PLATFORM_25;
+      chassis.setY(32);
     }
     break;
   case CORRECTION_5:
@@ -413,9 +448,10 @@ void doStateMachine()
     break;
   case GO_TO_PLATFORM_25:
     //armTarget = targetStagingPlatform;
-    if (chassis.moveToPoint(9.8,34)){
+    chassis.setY(32);
+    if (chassis.lineFollowToPoint(6.75,32,sensorValues)){
       chassis.stopAllMotors();
-      state = STRAIGHTEN_4;
+      state = LOWER_ARM_25;
     }
     break;
   case STRAIGHTEN_4:
@@ -425,31 +461,51 @@ void doStateMachine()
     }
     break;
   case LOWER_ARM_25:
-
-    state = OPEN_JAW_25_PLATFORM;
+    armTarget = targetStagingPlatform;
+    if (waitIterations > 250) {
+      state = OPEN_JAW_25_PLATFORM;
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case OPEN_JAW_25_PLATFORM:
-
-    state = CLOSE_JAW_25_PLATFORM;
+    if (waitIterations > 150) {
+      state = CLOSE_JAW_25_PLATFORM;
+      waitIterations = 0;
+    }
+    else {
+      servo.Write(1300);
+      waitIterations ++;
+    }
     break;
   case CLOSE_JAW_25_PLATFORM:
-
-    state = RAISE_ARM_25_PLATFORM;
+    servo.Write(1900);
+     if (waitIterations > 100) {
+      state = RAISE_ARM_25_PLATFORM;  
+      waitIterations = 0;
+    }
+    else {
+      waitIterations ++;
+    }
     break;
   case RAISE_ARM_25_PLATFORM:
-
+    armTarget = target25dropoff;
+    chassis.setY(32);
+ //   chassis.setAngle(90);
     state = MOVE_AWAY_FROM_PLATFORM_25;
     break;
   case MOVE_AWAY_FROM_PLATFORM_25:
-    if (chassis.moveToPoint(1,32)){
+    if (chassis.moveToPoint(-1.25,30)){
       chassis.stopAllMotors();           
       state = TURN_TO_25_ROOF_2;
     }
     break;
   case TURN_TO_25_ROOF_2:
-    if (chassis.turnToAngle(174)){
+    if (chassis.turnToAngle(178)){
       chassis.stopAllMotors();
-      state = CORRECTION_6;
+      state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
     }
     break;
   case CORRECTION_6:
@@ -459,21 +515,22 @@ void doStateMachine()
     state = DRIVE_TO_ROOF_AND_RAISE_PLATE_25;
     break;
   case DRIVE_TO_ROOF_AND_RAISE_PLATE_25:
-    if (chassis.moveToPoint(2,23)){
+    chassis.setX(0);
+    if (chassis.lineFollowToPoint(0,22.4,sensorValues)){
       chassis.stopAllMotors();           
       state = DROP_PLATE_25;
     }
     break;
   case DROP_PLATE_25:
-
+    servo.Write(1300);
     state = OPEN_JAW_FINAL;
     break;
   case OPEN_JAW_FINAL:
-
+    armTarget = target25dropoff+80;
     state = BACK_UP_FINAL;
     break;
   case BACK_UP_FINAL:
-    if (chassis.moveToPoint(1,33)){
+    if (chassis.moveToPoint(0,33)){
       chassis.stopAllMotors();           
       state = STOPPED;
     }
@@ -507,12 +564,12 @@ void loop(){
   // put your main code here, to run repeatedly:
   rangeFinder.loop();
   //doStateMachine();
-  // Serial.println("\n\nX:\tY:\tAngle:\n");
-  // Serial.print(chassis.getX());
-  // Serial.print("\t");
-  // Serial.print(chassis.getY());
-  // Serial.print("\t");
-  // Serial.print(chassis.getAngleDegrees());
+  Serial.println("\n\nX:\tY:\tAngle:\n");
+  Serial.print(chassis.getX());
+  Serial.print("\t");
+  Serial.print(chassis.getY());
+  Serial.print("\t");
+   Serial.print(chassis.getAngleDegrees());
 
   checkRemote();
   qtr.read(sensorValues);
@@ -521,15 +578,18 @@ void loop(){
     delay(800);
   }
   if (buttonPressed) {
-    //servo.Write(1900);
+    //servo.Write(1100);
     //Serial.println(sensorValues[0]);
-   // doStateMachine();
-    if (chassis.lineFollowToPoint(0,30, sensorValues)) {
-    //if (chassis.moveToPoint(10,21.5)) {
-      //state = TURN_TO_PLATFORM_45;
-      chassis.stopAllMotors();
-      buttonPressed = false;
-    }
+    doStateMachine();
+    arm.turnToPosition(armTarget);
+
+    //Serial.println(arm.getPositionDegrees());
+    // if (chassis.turnToAngle(90)) {
+    // //if (chassis.moveToPoint(10,21.5)) {
+    //   //state = TURN_TO_PLATFORM_45;
+    //   chassis.stopAllMotors();
+    //   buttonPressed = false;
+    // }
   }
   chassis.updatePosition();
   delay(5);

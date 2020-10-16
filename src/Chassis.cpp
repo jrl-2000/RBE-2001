@@ -2,9 +2,9 @@
 #include <Chassis.h>
 
 void Chassis::initialize() {
-  drivePowerPID.pidInit(65,0,0);
+  drivePowerPID.pidInit(150,0,1400);
   turnPowerPID.pidInit(120,0,0);
-  turnPID.pidInit2(8,0.016,420, 3);
+    turnPID.pidInit2(14,0,420,5);
 
   reversed = true;
 }
@@ -255,22 +255,22 @@ bool Chassis::lineFollowToPoint(float targetX, float targetY, uint16_t SensorVal
     power = -power;
   }
 
-  power = -300;
+ // power = -150;
 
   int leftSensor = SensorValues[1];
   int rightSensor = SensorValues[0];
 
-  turnPower = 0.075 * (leftSensor - rightSensor);
+  turnPower = 0.12*(leftSensor-rightSensor);
 
-  motors.setEfforts((power + turnPower)*0.35, (power - turnPower)*0.35);
+  motors.setEfforts((power + turnPower)*0.65, (power - turnPower)*0.65);
 
-  if (sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)) < 0.75) {
+  if (sqrt(pow(targetY-getY(),2) + pow(targetX-getX(),2)) < 0.7) {
     repsAtTarget++;
   }
   else {
     repsAtTarget = 0;
   }
-  if (repsAtTarget > 10) {
+  if (repsAtTarget > 3) {
     atPoint = true;
     repsAtTarget = -1;
   }
@@ -278,4 +278,8 @@ bool Chassis::lineFollowToPoint(float targetX, float targetY, uint16_t SensorVal
 }
 void Chassis::stopAllMotors(){
   motors.setEfforts(0,0);
+}
+
+void Chassis::setAngle(float newAngle) {
+  angle = newAngle;
 }
